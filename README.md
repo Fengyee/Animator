@@ -5,12 +5,11 @@
 
 #### Requirements
 
-*  Here is a summary of the requirements for this project:  
-    * Implement the following curve types with support for wrapping:  
-        - Bézier (splined together with C0 continuity)  
-        - B-spline  
-        - Catmull-Rom  
-    * Implement a particle system that is integrated with your model in some way.  
+* [ ] (Zhaolucen) Implement the following curve types with support for wrapping:  
+    - Bézier (splined together with C0 continuity)  
+    - B-spline  
+    - Catmull-Rom  
+* [x] (Fengyee) Implement a particle system that is integrated with your model in some way.  
 
 ***  
 #### Bells and Whistles
@@ -22,24 +21,24 @@
     - Allow the user to specify the derivatives at the two endpoints of your C2 interpolating curves.
     - Add options to the user interface to enforce C0 or C1 continuity between adjacent Bézier curve segments automatically. (It should also be possible to override this feature in cases where you don't want this type of continuity.)
     - Add the ability to add a new control point to any curve type without changing the curve at all.
-* [ ] (1) Extends your project so that it support the use of the transparent TGA files.
-* [ ] (1) Render a mirror in your scene.
-* [ ] (1) You can achieve more spectacular effects with a simple technique called billboarding.
-* [ ] (4) Use the billboarded quads you implemented above to render the following effects.  Each of these effects is worth one whistle provided you have put in a whistle worth of effort making the effect look good.
-    - Fire (example) (You'll probably want to use additive blending for your particles - glBlendFunc(GL_SRC_ALPHA,GL_ONE); )
-    - Snow
-    - Water fountain
-    - Fireworks
+* [ ] (1) (Fengyee) Extends your project so that it support the use of the transparent TGA files.
+* [ ] (1) (Fengyee) Render a mirror in your scene.
+* [ ] (1) (Fengyee) You can achieve more spectacular effects with a simple technique called billboarding.
+* [ ] (4) (Fengyee) Use the billboarded quads you implemented above to render the following effects.  Each of these effects is worth one whistle provided you have put in a whistle worth of effort making the effect look good.
+    - [ ] Fire (Fengyee) (You'll probably want to use additive blending for your particles - glBlendFunc(GL_SRC_ALPHA,GL_ONE); )
+    - [ ] Snow
+    - [ ] Water fountain
+    - [ ] Fireworks
 * [ ] (1) Use environment mapping to simulate a reflective material.
 * [ ] (1) Implement a motion blur effect (example1, example2). 
-* [ ] (1) Implement a skyboxes (example) for rendering background of scene.
+* [ ] (1) Implement a skyboxes for rendering background of scene.
 * [ ] (1)  Implement your simulation engine using a higher-order method such as the Runge-Kutta technique. 
 * [ ] (1) Use openGL  display lists to speed up the rendering of one or more of your more complicated models.
 * [ ] (1) Implement adaptive Bézier curve generation; 
 * [ ] (2) Extend the particle system to handle springs.
 * [ ] (2) Allow for particles to bounce off each other by detecting collisions when updating their positions and velocities.
 * [ ] (2) Implement a "general" subdivision curve, so the user can specify an arbitrary averaging mask 
-* [ ] (2) Heightfields (example) are great ways to build complicated looking maps and terrains pretty easily.
+* [ ] (2) Heightfields are great ways to build complicated looking maps and terrains pretty easily.
 * [ ] (2) If you have done metaballs in project 2 or 3.  Extend your metaballs so that it support environment mapping.(
 * [ ] (3)  Add a lens flare.
 * [ ] (3) If you find something you don't like about the interface, or something you think you could do better, change it!

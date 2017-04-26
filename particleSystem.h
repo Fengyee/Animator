@@ -17,18 +17,16 @@
 #define __PARTICLE_SYSTEM_H__
 
 #include "vec.h"
-
+#include "particle.h"
+#include <vector>
+#include <list>
 
 
 class ParticleSystem {
 
 public:
-
-
-
 	/** Constructor **/
-	ParticleSystem();
-
+	ParticleSystem(ParticleType type, int life, const Vec3f& size, float bakefps, int speed);
 
 	/** Destructor **/
 	virtual ~ParticleSystem();
@@ -44,7 +42,7 @@ public:
 
 	// This function should compute forces acting on all particles
 	// and update their state (pos and vel) appropriately.
-	virtual void computeForcesAndUpdateParticles(float t);
+	virtual void computeForcesAndUpdateParticles(int index);
 
 	// This function should reset the system to its initial state.
 	// When you need to reset your simulation, PLEASE USE THIS FXN.
@@ -72,12 +70,7 @@ public:
 	bool isDirty() { return dirty; }
 	void setDirty(bool d) { dirty = d; }
 
-
-
 protected:
-	
-
-
 	/** Some baking-related state **/
 	float bake_fps;						// frame rate at which simulation was baked
 	float bake_start_time;				// time at which baking started 
@@ -89,6 +82,11 @@ protected:
 	bool simulate;						// flag for simulation mode
 	bool dirty;							// flag for updating ui (don't worry about this)
 
+	int particleLife;
+	Vec3f particleSize;
+	ParticleType particleType;
+	int particleNumber;
+	std::vector< std::list<Particle>* > bakedParticles;
 };
 
 

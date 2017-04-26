@@ -9,8 +9,8 @@
 #include "modelerapp.h"
 #include "modelerdraw.h"
 #include "particleSystem.h"
-
-
+#include "mat.h"
+#include "camera.h"
 #include <FL/gl.h>
 #include <stdlib.h>
 
@@ -45,6 +45,25 @@
 #define COLOR_BLACK		0.1f, 0.1f, 0.1f
 #define COLOR_MIKU      0.4f, 0.6f, 0.6f
 #define COLOR_RIBBON    0.6f, 0.2f, 0.6f
+
+Vec4f WorldPoint;
+
+Mat4f getModelViewMatrix()
+{
+	GLfloat m[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, m);
+	Mat4f matMV(m[0], m[1], m[2], m[3],
+		m[4], m[5], m[6], m[7],
+		m[8], m[9], m[10], m[11],
+		m[12], m[13], m[14], m[15]);
+	return matMV.transpose(); // because the matrix GL returns is column major
+}
+
+void SpawnParticles(Mat4f cameraTransform)
+{
+	Mat4f WorldMatrix = cameraTransform.inverse() * getModelViewMatrix();
+	WorldPoint = WorldMatrix * Vec4f(0, 0, 0, 1);
+}
 
 // This is a list of the controls for the RobotArm
 // We'll use these constants to access the values 
@@ -162,6 +181,8 @@ void RobotArm::draw()
 
 	// draw the sample model
 	setAmbientColor(.1f,.1f,.1f);
+
+	Mat4f CameraMatrix = getModelViewMatrix();
 
 	glPushMatrix();
 
@@ -603,6 +624,15 @@ void RobotArm::draw()
 		glRotated(VAL(RIGHT_UPPER_ARM_ROTATION_Y) * (VAL(HAPPINESS) + 2) / 2, 0.0, 1.0, 0.0);
 		glRotated(VAL(RIGHT_UPPER_ARM_ROTATION_Z) * (VAL(HAPPINESS) + 2) / 2, 0.0, 0.0, 1.0);
 		glTranslated(0, -1 * arm_y * unit_block, -1 * arm_z / 2 * unit_block);
+
+		SpawnParticles(CameraMatrix);
+		// printf("spawn particles and the worldpoint is (%f, %f, %f, %f)\n", WorldPoint[0], WorldPoint[1], WorldPoint[2], WorldPoint[3]);
+
+		ParticleSystem* ps = ModelerApplication::Instance()->GetParticleSystem();
+		if (ps != NULL)
+		{
+			ps->drawParticles(t);
+		}
 
 		if (VAL(DRAW_LEVEL) > 1)
 		{
@@ -1140,7 +1170,10 @@ int main()
 	// call ModelerApplication::Instance()->SetParticleSystem(ps)
 	// to hook it up to the animator interface.
 
-    ModelerApplication::Instance()->Init(&createRobotArm, controls, NUMCONTROLS);
+	ParticleSystem *ps = new ParticleSystem(BALL, 20, Vec3f(0.05, 0.05, 0.05), 30.0, 5);
+
+	ModelerApplication::Instance()->SetParticleSystem(ps);
+	ModelerApplication::Instance()->Init(&createRobotArm, controls, NUMCONTROLS);
 
     return ModelerApplication::Instance()->Run();
 }

@@ -237,7 +237,7 @@ ModelerUIWindows::ModelerUIWindows() {
         o->end();
         Fl_Group::current()->resizable(o);
       }
-      { Fl_Group* o = new Fl_Group(15, 510, 125, 95, "partical system");
+      { Fl_Group* o = new Fl_Group(15, 510, 125, 95, "particle system");
         o->box(FL_ENGRAVED_BOX);
         o->labeltype(FL_NO_LABEL);
         { Fl_Box* o = new Fl_Box(20, 510, 90, 20, "Particle System");
