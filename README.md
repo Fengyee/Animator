@@ -5,7 +5,7 @@
 
 #### Requirements
 
-* [ ] (Zhaolucen) Implement the following curve types with support for wrapping:  
+* [x] (Zhaolucen) Implement the following curve types with support for wrapping:  
     - Bézier (splined together with C0 continuity)  
     - B-spline  
     - Catmull-Rom  
@@ -14,7 +14,7 @@
 ***  
 #### Bells and Whistles
 
-* [ ] (3) Enhance the required spline options. (  A maximum of 3 whistles will be given out in this category.)
+* [ ] (3) (ZhaoLucen) Enhance the required spline options. (  A maximum of 3 whistles will be given out in this category.)
     - Let the user control the tension of the Catmull-Rom spline
     - Implement higher degree polynomial splines (ones that are C3 or C4 continuous)
     - Implement one of the standard subdivision curves (e.g., Lane-Riesenfeld or Dyn-Levin-Gregory).
@@ -34,7 +34,7 @@
 * [ ] (1) Implement a skyboxes for rendering background of scene.
 * [ ] (1)  Implement your simulation engine using a higher-order method such as the Runge-Kutta technique. 
 * [ ] (1) Use openGL  display lists to speed up the rendering of one or more of your more complicated models.
-* [ ] (1) Implement adaptive Bézier curve generation; 
+* [ ] (1) (ZhaoLucen) Implement adaptive Bézier curve generation; 
 * [ ] (2) Extend the particle system to handle springs.
 * [ ] (2) Allow for particles to bounce off each other by detecting collisions when updating their positions and velocities.
 * [ ] (2) Implement a "general" subdivision curve, so the user can specify an arbitrary averaging mask 
@@ -43,9 +43,9 @@
 * [ ] (3)  Add a lens flare.
 * [ ] (3) If you find something you don't like about the interface, or something you think you could do better, change it!
 * [ ] (4) Add flocking behaviors to your particles to simulate creatures moving in flocks, herds, or schools.
-* [ ] (4) Implement a C2-Interpolating curve.  There is already an entry for it in the drop-down menu.
-* [ ] (4) Add the ability to edit Catmull-Rom curves using the two "inner" Bézier control points as "handles" on the interpolated "outer" Catmull-Rom control points.
-* [ ] (4) Implement picking of a part in the model hierarchy. In other words, make it so that you can click on a part of your model to select its animation curve. 
+* [ ] (4) (ZhaoLucen) Implement a C2-Interpolating curve.  There is already an entry for it in the drop-down menu.
+* [ ] (4) (ZhaoLucen) Add the ability to edit Catmull-Rom curves using the two "inner" Bézier control points as "handles" on the interpolated "outer" Catmull-Rom control points.
+* [ ] (4) (ZhaoLucen) Implement picking of a part in the model hierarchy. In other words, make it so that you can click on a part of your model to select its animation curve. 
 * [ ] (4) If you implemented twist for your original model, the camera movement for your old modeler can give some unexpected results.
 * [ ] (4)  extend the basic requirements so that it can draw bspline surface in the 3D scene.
 * [ ] (6)  Implement projected textures
@@ -55,7 +55,7 @@
 * [ ] (8) Extend your system to support subdivision surfaces.
 * [ ] (4) Implement picking of a part in the model hierarchy. In other words, make it so that you can click on a part of your model to select its animation curve. 
 * [ ] (4) If you implemented twist for your original model, the camera movement for your old modeler can give some unexpected results.
-* [ ] (4)  extend the basic requirements so that it can draw bspline surface in the 3D scene.
+* [ ] (4) (ZhaoLucen) extend the basic requirements so that it can draw bspline surface in the 3D scene.
 * [ ] (6)  Implement projected textures
 * [ ] (6) An alternative way to do animations is to transform an already existing animation by way of motion warping
 * [ ] (6) Implement Cell Shading
