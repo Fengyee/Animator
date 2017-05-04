@@ -54,6 +54,9 @@ public:
   Fl_Choice *m_pchoCurveType;
   static Fl_Menu_Item menu_m_pchoCurveType[];
   Fl_Light_Button *m_pbtWrap;
+  // newly added
+  Fl_Value_Slider *m_psldrCurveTension;
+  // end newly added
   Fl_Button *m_pbtZoomAll;
   Fl_Button *m_pbtStepBack;
   Fl_Button *m_pbtPlay;

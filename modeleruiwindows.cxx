@@ -125,6 +125,21 @@ ModelerUIWindows::ModelerUIWindows() {
             o->labelsize(12);
             o->user_data((void*)(this));
           }
+		  // newly added
+		  { Fl_Value_Slider * o = m_psldrCurveTension = new Fl_Value_Slider(230, 500, 200, 20, "Tension");
+		  o->type(5);
+		  o->labelsize(12);
+		  o->minimum(0.1);
+		  o->maximum(5);
+		  o->step(0.1);
+		  o->value(0.5);
+		  o->user_data((void*)(this));
+		  o->activate();
+		  o->align(FL_ALIGN_LEFT);
+
+		  Fl_Group::current()->resizable(o);
+		  }
+		  // end newly added
           { Fl_Button* o = m_pbtZoomAll = new Fl_Button(505, 470, 75, 20, "Z&oom All");
             o->labelsize(12);
             o->user_data((void*)(this));

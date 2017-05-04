@@ -14,7 +14,7 @@ public:
 		std::vector<Point>& ptvEvaluatedCurvePts,
 		const float& fAniLength,
 		const bool& bWrap) const;
-	Point calculateCatmull(float t, const Point& p1, const Point& p2, const Point& p3, const Point& p4) const;
+	Point calculateCatmull(float t, const Point& p1, const Point& p2, const Point& p3, const Point& p4, float tension) const;
 };
 
 #endif#

@@ -20,6 +20,7 @@ float Curve::s_fCtrlPtXEpsilon = 0.0001f;
 Curve::Curve() :
 	m_pceEvaluator(NULL),
 	m_bWrap(false),
+	m_fTension(0.5),
 	m_bDirty(true),
 	m_fMaxX(1.0f)
 {
@@ -29,6 +30,7 @@ Curve::Curve() :
 Curve::Curve(const float fMaxX, const Point& point) :
 	m_pceEvaluator(NULL),
 	m_bWrap(false),
+	m_fTension(0.5),
 	m_bDirty(true),
 	m_fMaxX(fMaxX)
 {
@@ -38,6 +40,7 @@ Curve::Curve(const float fMaxX, const Point& point) :
 Curve::Curve(const float fMaxX, const float fStartYValue) :
 	m_pceEvaluator(NULL),
 	m_bWrap(false),
+	m_fTension(0.5),
 	m_bDirty(true),
 	m_fMaxX(fMaxX)
 {
@@ -109,6 +112,11 @@ void Curve::wrap(bool bWrap)
 bool Curve::wrap() const
 {
 	return m_bWrap;
+}
+
+bool Curve::tension() const
+{
+	return m_fTension;
 }
 
 float Curve::evaluateCurveAt(const float x) const
