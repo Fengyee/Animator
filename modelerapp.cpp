@@ -1,5 +1,4 @@
 #pragma warning(disable : 4786)
-
 #include "particleSystem.h"
 #include "modelerapp.h"
 #include "modelerview.h"
