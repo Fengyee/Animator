@@ -34,7 +34,7 @@ public:
 	/** Simulation fxns **/
 	// This fxn should render all particles in the system,
 	// at current time t.
-	virtual void drawParticles(float t);
+	virtual void drawParticles(float t, int isMirror);
 
 	// This fxn should save the configuration of all particles
 	// at current time t.
@@ -78,6 +78,7 @@ protected:
 										// updating the grey indicator 
 	float bake_end_time;				// time at which baking ended
 
+	int isMirror;
 	/** General state variables **/
 	bool simulate;						// flag for simulation mode
 	bool dirty;							// flag for updating ui (don't worry about this)

@@ -12,8 +12,10 @@
 #include "mat.h"
 #include "modelerapp.h"
 #include "modelerui.h"
+#include <math.h>
 
 extern Mat4f WorldMatrix;
+extern Mat4f getModelViewMatrix();
 
 /***************
  * Constructors
@@ -24,6 +26,7 @@ ParticleSystem::ParticleSystem(ParticleType type, int life, const Vec3f& size, f
 {
 	particleSize = size;
 	bake_fps = bakefps;
+	isMirror = 0;
 	if (bakefps <= 0) bake_fps = 30.0;
 }
 
@@ -96,7 +99,14 @@ void ParticleSystem::resetSimulation(float t)
 void ParticleSystem::computeForcesAndUpdateParticles(int index)
 {
 	list<Particle>* particles = bakedParticles[index];
-	Vec3f g(0, -9.8, 0);
+	Vec3f g(1, 1, 1);
+	if (isMirror == 1)
+	{
+		g = Vec3f(0, -9.8, 0);
+	}
+	else {
+		g = Vec3f(0, 9.8, 0);
+	}
 	float dragCoef = -0.1;
 	for (auto it = particles->begin(); it != particles->end(); it++)
 	{
@@ -109,10 +119,19 @@ void ParticleSystem::computeForcesAndUpdateParticles(int index)
 
 
 /** Render particles */
-void ParticleSystem::drawParticles(float t)
+void ParticleSystem::drawParticles(float t, int isM)
 {
 	if (t < bake_start_time || bake_start_time <= bake_end_time && t > bake_end_time) return;
+	isMirror = isM;
 	bakeParticles(t);
+	
+	Mat4f mvm = getModelViewMatrix();
+	Vec3f forward(mvm[2][0], mvm[2][1], mvm[2][2]);
+	Vec3f right(mvm[0][0], mvm[0][1], mvm[0][2]);
+	Vec3f up(mvm[1][0], mvm[1][1], mvm[1][2]);
+	
+	// printf("angle is %f\n", angle);
+	// printf("DOF is %f, %f, %f\n", mvm[2][0], mvm[2][1], mvm[2][2]);
 
 	int frameNum = (t - bake_start_time) * bake_fps;
 	// printf("frame number is %d\n", frameNum);
@@ -133,6 +152,7 @@ void ParticleSystem::drawParticles(float t)
 			break;
 		case BALL:
 			drawSphere(0.5);
+			break;
 		default:
 			break;
 		}
@@ -171,7 +191,7 @@ void ParticleSystem::bakeParticles(float t)
 		{
 			for (int j = 0; j < 10; ++j)
 			{
-				newParticles->push_back(spawnParticle(Vec4f(0.1 * j, 0.9, 0, 1)));
+				newParticles->push_back(spawnParticle(Vec4f(0.1 * j, -3.2, 0, 1)));
 			}
 		}
 		bakedParticles[0] = newParticles;
@@ -199,7 +219,7 @@ void ParticleSystem::bakeParticles(float t)
 	{
 		for (int j = 0; j < 10; ++j)
 		{
-			tmp->push_back(spawnParticle(Vec4f(0.1 * j, 0.9, 0, 1)));
+			tmp->push_back(spawnParticle(Vec4f(0.1 * j, -3.2, 0, 1)));
 		}
 	}
 

@@ -87,6 +87,19 @@ void setAmbientColor(float r, float g, float b)
         glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT, mds->m_ambientColor);
 }
 
+void setAmbientColor(float r, float g, float b, float a)
+{
+	ModelerDrawState *mds = ModelerDrawState::Instance();
+
+	mds->m_ambientColor[0] = (GLfloat)r;
+	mds->m_ambientColor[1] = (GLfloat)g;
+	mds->m_ambientColor[2] = (GLfloat)b;
+	mds->m_ambientColor[3] = (GLfloat)a;
+
+	if (mds->m_drawMode == NORMAL)
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mds->m_ambientColor);
+}
+
 void setDiffuseColor(float r, float g, float b)
 {
     ModelerDrawState *mds = ModelerDrawState::Instance();
@@ -100,6 +113,21 @@ void setDiffuseColor(float r, float g, float b)
         glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, mds->m_diffuseColor);
     else
         glColor3f(r,g,b);
+}
+
+void setDiffuseColor(float r, float g, float b, float a)
+{
+	ModelerDrawState *mds = ModelerDrawState::Instance();
+
+	mds->m_diffuseColor[0] = (GLfloat)r;
+	mds->m_diffuseColor[1] = (GLfloat)g;
+	mds->m_diffuseColor[2] = (GLfloat)b;
+	mds->m_diffuseColor[3] = (GLfloat)a;
+
+	if (mds->m_drawMode == NORMAL)
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mds->m_diffuseColor);
+	else
+		glColor3f(r, g, b);
 }
 
 void setSpecularColor(float r, float g, float b)

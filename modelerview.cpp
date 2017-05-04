@@ -97,10 +97,14 @@ void ModelerView::draw()
     {
         glShadeModel( GL_SMOOTH );
         glEnable( GL_DEPTH_TEST );
+		glDepthFunc(GL_LESS);
         glEnable( GL_LIGHTING );
 		glEnable( GL_LIGHT0 );
         glEnable( GL_LIGHT1 );
 		glEnable( GL_NORMALIZE );
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     }
 
   	glViewport( 0, 0, w(), h() );
