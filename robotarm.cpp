@@ -4,6 +4,9 @@
 #pragma warning (disable : 4244)
 #pragma warning(disable : 4786)
 
+#define GLEW_STATIC
+#include <FL/gl.h>
+#include <FL/glut.h>
 
 #include "modelerview.h"
 #include "modelerapp.h"
@@ -11,7 +14,7 @@
 #include "particleSystem.h"
 #include "mat.h"
 #include "camera.h"
-#include <FL/gl.h>
+
 #include <stdlib.h>
 
 #define M_DEFAULT 2.0f
@@ -46,7 +49,8 @@
 #define COLOR_MIKU      0.4f, 0.6f, 0.6f
 #define COLOR_RIBBON    0.6f, 0.2f, 0.6f
 
-Vec4f WorldPoint;
+Mat4f WorldMatrix;
+Mat4f CameraMatrix;
 
 Mat4f getModelViewMatrix()
 {
@@ -58,11 +62,32 @@ Mat4f getModelViewMatrix()
 		m[12], m[13], m[14], m[15]);
 	return matMV.transpose(); // because the matrix GL returns is column major
 }
-
-void SpawnParticles(Mat4f cameraTransform)
-{
-	Mat4f WorldMatrix = cameraTransform.inverse() * getModelViewMatrix();
-	WorldPoint = WorldMatrix * Vec4f(0, 0, 0, 1);
+void drawParticles(float t) {
+	// WorldMatrix = CameraMatrix.inverse() * getModelViewMatrix();
+	/*{
+		glPushMatrix();
+		Vec4f worldpoint = WorldMatrix * Vec4f(0, 0, 0, 1);
+		glTranslatef(worldpoint[0], worldpoint[1], worldpoint[2]);
+		setDiffuseColor(COLOR_YELLOW);
+		drawSphere(0.3);
+		glPopMatrix();
+	}
+	{
+		glPushMatrix();
+		setDiffuseColor(COLOR_GREEN);
+		drawSphere(0.3);
+		glPopMatrix();
+	}*/
+	glPushMatrix();
+	// Draw particles
+	// glTranslatef(WorldPoint[0], WorldPoint[1], WorldPoint[2]);
+	ParticleSystem* ps = ModelerApplication::Instance()->GetParticleSystem();
+	if (ps != NULL)
+	{
+		ps->drawParticles(t);
+	}
+	// printf("current world point: %f, %f, %f, %f\n", WorldPoint[0], WorldPoint[1], WorldPoint[2], WorldPoint[3]);
+	glPopMatrix();
 }
 
 // This is a list of the controls for the RobotArm
@@ -145,6 +170,7 @@ void RobotArm::draw()
     // This call takes care of a lot of the nasty projection 
     // matrix stuff
     ModelerView::draw();
+	CameraMatrix = getModelViewMatrix();
 
 	static GLfloat lmodel_ambient[] = {0.4,0.4,0.4,1.0};
 
@@ -181,8 +207,6 @@ void RobotArm::draw()
 
 	// draw the sample model
 	setAmbientColor(.1f,.1f,.1f);
-
-	Mat4f CameraMatrix = getModelViewMatrix();
 
 	glPushMatrix();
 
@@ -311,8 +335,8 @@ void RobotArm::draw()
 			}
 		}
 		// draw head
-		
 		glPushMatrix();
+		
 		glTranslated(0, body_y * unit_block, -1 * (head - body_z) / 2 * unit_block);
 
 		// head resize implementation
@@ -514,6 +538,7 @@ void RobotArm::draw()
 
 		glScaled(head * unit_block, head * unit_block, head * unit_block);
 		drawBox(1, 1, 1);
+
 		glPopMatrix();
 
 		// draw left hand
@@ -559,6 +584,7 @@ void RobotArm::draw()
 
 		// lower left arm
 		glPushMatrix();
+
 		glTranslated(0, -1 * arm_y * unit_block, 0);
 		// lower arm rotation implementation
 		glTranslated(arm_x / 2 * unit_block, arm_y * unit_block, arm_z / 2 * unit_block);
@@ -595,6 +621,7 @@ void RobotArm::draw()
 		else
 			setDiffuseColor(COLOR_SKIN);
 		glScaled(arm_x * unit_block, arm_y * unit_block, arm_z * unit_block);
+
 		// draw left lower arm
 		drawBox(1, 1, 1);
 		glPopMatrix();
@@ -607,6 +634,7 @@ void RobotArm::draw()
 		glScaled(arm_x * unit_block, arm_y * unit_block, arm_z * unit_block);
 		drawBox(1, 1, 1);
 		glPopMatrix();
+
 
 		// draw right hand
 		glPushMatrix();
@@ -625,14 +653,6 @@ void RobotArm::draw()
 		glRotated(VAL(RIGHT_UPPER_ARM_ROTATION_Z) * (VAL(HAPPINESS) + 2) / 2, 0.0, 0.0, 1.0);
 		glTranslated(0, -1 * arm_y * unit_block, -1 * arm_z / 2 * unit_block);
 
-		SpawnParticles(CameraMatrix);
-		// printf("spawn particles and the worldpoint is (%f, %f, %f, %f)\n", WorldPoint[0], WorldPoint[1], WorldPoint[2], WorldPoint[3]);
-
-		ParticleSystem* ps = ModelerApplication::Instance()->GetParticleSystem();
-		if (ps != NULL)
-		{
-			ps->drawParticles(t);
-		}
 
 		if (VAL(DRAW_LEVEL) > 1)
 		{
@@ -916,6 +936,7 @@ void RobotArm::draw()
 			setDiffuseColor(COLOR_CYAN);
 		}
 		glScaled(body_x * unit_block, body_y * unit_block, body_z * unit_block);
+		WorldMatrix = CameraMatrix.inverse() * getModelViewMatrix();
 		drawBox(1, 1, 1);
 		glPopMatrix();
 		/*
@@ -933,6 +954,8 @@ void RobotArm::draw()
 		glPopMatrix();
 		*/
 	glPopMatrix();
+
+	drawParticles(t);
 	//*** DON'T FORGET TO PUT THIS IN YOUR OWN CODE **/
 	endDraw();
 }
@@ -940,7 +963,7 @@ void RobotArm::draw()
 void ground(float h) 
 {
 	glDisable(GL_LIGHTING);
-	glColor3f(0.65,0.45,0.2);
+	glColor3f(0.25,0.65,0.45);
 	glPushMatrix();
 	glScalef(30,0,30);
 	y_box(h);
@@ -1170,7 +1193,7 @@ int main()
 	// call ModelerApplication::Instance()->SetParticleSystem(ps)
 	// to hook it up to the animator interface.
 
-	ParticleSystem *ps = new ParticleSystem(BALL, 20, Vec3f(0.05, 0.05, 0.05), 30.0, 5);
+	ParticleSystem *ps = new ParticleSystem(BALL, 20, Vec3f(0.03, 0.03, 0.03), 30.0, 5);
 
 	ModelerApplication::Instance()->SetParticleSystem(ps);
 	ModelerApplication::Instance()->Init(&createRobotArm, controls, NUMCONTROLS);
