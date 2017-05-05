@@ -157,10 +157,12 @@ void ParticleSystem::drawParticles(float t, int isM, GLint texName)
 					modelview[i * 4 + j] = 0.0;
 			}
 		}
+		/*
 		glLoadMatrixf(modelview);
 		glTranslatef(1, 1, 1);
 		setDiffuseColor(0.2, 0.2, 0.7);
 		drawBox(0.5, 0.5, 0.5);
+		*/
 	glPopMatrix();
 	
 

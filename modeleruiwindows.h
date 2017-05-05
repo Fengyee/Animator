@@ -76,5 +76,7 @@ public:
   Fl_Button *m_pbtRemoveAllCamKeyFrames;
   Fl_Window *m_pwndModelerWnd;
   ModelerView *m_pwndModelerView;
+  Fl_Input *averageMask;
+  Fl_Value_Slider *m_pDepthSlider;
 };
 #endif

@@ -45,6 +45,7 @@ void ModelerControl::SetVals(const char* name, float minimum, float maximum, flo
 }
 
 
+
 // ****************************************************************************
 
 
@@ -58,6 +59,12 @@ ModelerApplication* ModelerApplication::Instance()
 	// Make a new instance if none exists, otherwise, return
 	// the existing instance of the ModelerApplication
 	return (m_instance) ? (m_instance) : (m_instance = new ModelerApplication());
+}
+
+
+ModelerUI* ModelerApplication::getPUI()
+{
+	return ModelerApplication::Instance()->m_ui;
 }
 
 void ModelerApplication::Init(ModelerViewCreator_f createView, 

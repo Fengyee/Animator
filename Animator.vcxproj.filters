@@ -108,6 +108,9 @@
     <ClCompile Include="catmullcurveevaluator.cpp">
       <Filter>Source Files\Curves</Filter>
     </ClCompile>
+    <ClCompile Include="subdivisioncurveevaluator.cpp">
+      <Filter>Source Files\Curves</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="curve.h">
@@ -177,6 +180,9 @@
       <Filter>Source Files\Curves</Filter>
     </ClInclude>
     <ClInclude Include="catmullcurveevaluator.h">
+      <Filter>Source Files\Curves</Filter>
+    </ClInclude>
+    <ClInclude Include="subdivisioncurveevaluator.h">
       <Filter>Source Files\Curves</Filter>
     </ClInclude>
   </ItemGroup>

@@ -65,21 +65,6 @@ Mat4f getModelViewMatrix()
 	return matMV.transpose(); // because the matrix GL returns is column major
 }
 void drawParticles(float t, int isMirror) {
-	// WorldMatrix = CameraMatrix.inverse() * getModelViewMatrix();
-	/*{
-		glPushMatrix();
-		Vec4f worldpoint = WorldMatrix * Vec4f(0, 0, 0, 1);
-		glTranslatef(worldpoint[0], worldpoint[1], worldpoint[2]);
-		setDiffuseColor(COLOR_YELLOW);
-		drawSphere(0.3);
-		glPopMatrix();
-	}
-	{
-		glPushMatrix();
-		setDiffuseColor(COLOR_GREEN);
-		drawSphere(0.3);
-		glPopMatrix();
-	}*/
 	glPushMatrix();
 	// Draw particles
 	// glTranslatef(WorldPoint[0], WorldPoint[1], WorldPoint[2]);
@@ -93,21 +78,6 @@ void drawParticles(float t, int isMirror) {
 }
 
 void drawFire(float t, int isMirror, GLint texName) {
-	// WorldMatrix = CameraMatrix.inverse() * getModelViewMatrix();
-	/*{
-	glPushMatrix();
-	Vec4f worldpoint = WorldMatrix * Vec4f(0, 0, 0, 1);
-	glTranslatef(worldpoint[0], worldpoint[1], worldpoint[2]);
-	setDiffuseColor(COLOR_YELLOW);
-	drawSphere(0.3);
-	glPopMatrix();
-	}
-	{
-	glPushMatrix();
-	setDiffuseColor(COLOR_GREEN);
-	drawSphere(0.3);
-	glPopMatrix();
-	}*/
 	glPushMatrix();
 	// Draw particles
 	// glTranslatef(WorldPoint[0], WorldPoint[1], WorldPoint[2]);
@@ -120,14 +90,6 @@ void drawFire(float t, int isMirror, GLint texName) {
 	glPopMatrix();
 }
 
-// This is a list of the controls for the RobotArm
-// We'll use these constants to access the values 
-// of the controls from the user interface.
-/*enum RobotArmControls
-{ 
-    BASE_ROTATION=0, LOWER_TILT, UPPER_TILT, CLAW_ROTATION,
-        BASE_LENGTH, LOWER_LENGTH, UPPER_LENGTH, PARTICLE_COUNT, NUMCONTROLS, 
-};*/
 enum RobotArmControls
 {
 	XPOS, YPOS, ZPOS,
@@ -1024,8 +986,8 @@ drawModel:
 		*/
 		glPopMatrix();
 
-		// drawParticles(t, isMirror);
-		drawFire(t, isMirror, texName);
+		drawParticles(t, isMirror);
+		// drawFire(t, isMirror, texName);
 	}
 	glPopMatrix();
 	if (isMirror == 1)
@@ -1137,6 +1099,6 @@ int main()
 	ModelerApplication::Instance()->SetParticleSystem(ps);
 	ModelerApplication::Instance()->SetFire(fire);
 	ModelerApplication::Instance()->Init(&createRobotArm, controls, NUMCONTROLS);
-
+	ModelerApplication::getPUI()->averageMask->value("0.5 0.5");
     return ModelerApplication::Instance()->Run();
 }
