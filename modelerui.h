@@ -111,6 +111,8 @@ private:
 	static void cb_wrap(Fl_Light_Button*, void*);
 	inline void cb_freeze_i(Fl_Light_Button*, void*);
 	static void cb_freeze(Fl_Light_Button*, void*);
+	inline void cb_inner_i(Fl_Light_Button*, void*);
+	static void cb_inner(Fl_Light_Button*, void*);
 	inline void cb_indicatorWnd_i(IndicatorWindow*, void*);
 	static void cb_indicatorWnd(IndicatorWindow*, void*);
 	inline void cb_setCamKeyFrame_i(Fl_Button*, void*);

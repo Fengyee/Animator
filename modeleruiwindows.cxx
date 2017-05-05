@@ -147,6 +147,10 @@ ModelerUIWindows::ModelerUIWindows() {
 		  o->user_data((void*)(this));
 		  Fl_Group::current()->resizable(o);
 		  }
+		  { Fl_Light_Button* o = m_pbtInnerPts = new Fl_Light_Button(370, 490, 90, 20, "Inner Points");
+		  o->labelsize(12);
+		  o->user_data((void*)(this));
+		  }
           o->end();
         }
         o->end();

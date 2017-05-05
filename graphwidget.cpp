@@ -28,6 +28,7 @@
 #include "beziercurveevaluator.h"
 #include "bsplinecurveevaluator.h"
 #include "catmullcurveevaluator.h"
+#include "C2curveevaluator.h"
  
 
 #define LEFT		1
@@ -123,7 +124,7 @@ m_flcCurrCurve(FL_BLACK)
 	m_ppceCurveEvaluators[CURVE_TYPE_BEZIER] = new BezierCurveEvaluator();
 	m_ppceCurveEvaluators[CURVE_TYPE_CATMULLROM] = new CatmullCurveEvaluator();
 	// Note that C2-Interpolating curve is not a requirement
-	m_ppceCurveEvaluators[CURVE_TYPE_C2INTERPOLATING] = new LinearCurveEvaluator();
+	m_ppceCurveEvaluators[CURVE_TYPE_C2INTERPOLATING] = new C2CurveEvaluator();
 
 }
 
@@ -551,6 +552,7 @@ void GraphWidget::selectAddCtrlPt(const int iMouseX, const int iMouseY)
 
 		// find the closest control point
 		Point ptMouseInCurveCoord = windowToCurve(m_iCurrCurve, ptMouse);
+
 		int iClosestCtrlPt = m_pcrvvCurves[m_iCurrCurve]->getClosestControlPoint(ptMouseInCurveCoord, ptCtrlPt);
 
 		Point ptCtrlPtInWindowCoord = curveToWindow(m_iCurrCurve, ptCtrlPt);
@@ -864,6 +866,13 @@ void GraphWidget::currCurveTension(float tension)
 		m_pcrvvCurves[m_iCurrCurve]->tension(tension);
 	}
 }
+void GraphWidget::curveInnerPts(bool bInner)
+{
+	if (m_iCurrCurve >= 0) {
+		m_pcrvvCurves[m_iCurrCurve]->showInner(bInner);
+	}
+}
+
 
 void GraphWidget::wrapCurve(int iCurve, bool bWrap)
 {

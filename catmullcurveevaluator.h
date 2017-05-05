@@ -13,8 +13,8 @@ public:
 	void evaluateCurve(const std::vector<Point>& ptvCtrlPts,
 		std::vector<Point>& ptvEvaluatedCurvePts,
 		const float& fAniLength,
-		const bool& bWrap, float m_fTension) const;
-	Point calculateCatmull(float t, const Point& p1, const Point& p2, const Point& p3, const Point& p4, float tension) const;
+		const bool& bWrap, float m_fTension, bool m_bInner, std::vector<Point>& m_ptvCtrlPtsInner) const;
+	Point calculateCatmull(int i,int t, const Point& p1, const Point& p2, const Point& p3, const Point& p4, float tension, std::vector<Point>& m_ptvCtrlPtsInner, std::vector<Point> prevInner, bool bInner) const;
 };
 
 #endif#

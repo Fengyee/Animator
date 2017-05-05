@@ -21,6 +21,7 @@ Curve::Curve() :
 	m_pceEvaluator(NULL),
 	m_bWrap(false),
 	m_bFreeze(false),
+	m_bInner(false),
 	m_fTension(0.5),
 	m_bDirty(true),
 	m_fMaxX(1.0f)
@@ -32,6 +33,7 @@ Curve::Curve(const float fMaxX, const Point& point) :
 	m_pceEvaluator(NULL),
 	m_bWrap(false),
 	m_bFreeze(false),
+	m_bInner(false),
 	m_fTension(0.5),
 	m_bDirty(true),
 	m_fMaxX(fMaxX)
@@ -43,6 +45,7 @@ Curve::Curve(const float fMaxX, const float fStartYValue) :
 	m_pceEvaluator(NULL),
 	m_bWrap(false),
 	m_bFreeze(false),
+	m_bInner(false),
 	m_fTension(0.5),
 	m_bDirty(true),
 	m_fMaxX(fMaxX)
@@ -125,6 +128,12 @@ void Curve::freeze(bool bFreeze)
 void Curve::tension(float mfTension)
 {
 	m_fTension = mfTension;
+	m_bDirty = true;
+}
+
+void Curve::showInner(float bInner)
+{
+	m_bInner = bInner;
 	m_bDirty = true;
 }
 
@@ -241,19 +250,35 @@ int Curve::getClosestControlPoint(const Point& point, Point& ptCtrlPt) const
 	int iMinDistPt = 0;
 	float fMinDistSquared = FLT_MAX;
 
-	for (int i = 0; i < m_ptvCtrlPts.size(); ++i) { 
-		float delta_x = (m_ptvCtrlPts[i].x - point.x);
-		float delta_y = (m_ptvCtrlPts[i].y - point.y);
+		for (int i = 0; i < m_ptvCtrlPts.size(); ++i) {
+			float delta_x = (m_ptvCtrlPts[i].x - point.x);
+			float delta_y = (m_ptvCtrlPts[i].y - point.y);
 
-		float fDistSquared = delta_x * delta_x + delta_y * delta_y;
+			float fDistSquared = delta_x * delta_x + delta_y * delta_y;
 
-		if (fDistSquared < fMinDistSquared) {
-			iMinDistPt = i;
-			fMinDistSquared = fDistSquared;
-			ptCtrlPt = m_ptvCtrlPts[i];
+			if (fDistSquared < fMinDistSquared) {
+				iMinDistPt = i;
+				fMinDistSquared = fDistSquared;
+				ptCtrlPt = m_ptvCtrlPts[i];
+			}
+		}
+	
+
+	if (m_bInner == true)
+	{
+		for (int i = 100; i < 100 + m_ptvCtrlPts.size(); ++i) {
+			float delta_x = (m_ptvCtrlPtsInner[i -100].x - point.x);
+			float delta_y = (m_ptvCtrlPtsInner[i -100].y - point.y);
+
+			float fDistSquared = delta_x * delta_x + delta_y * delta_y;
+
+			if (fDistSquared < fMinDistSquared) {
+				iMinDistPt = i;
+				fMinDistSquared = fDistSquared;
+				ptCtrlPt = m_ptvCtrlPtsInner[i - 100];
+			}
 		}
 	}
-
 	return iMinDistPt;
 }
 
@@ -299,11 +324,10 @@ int Curve::segmentCount() const
 void Curve::moveControlPoint(const int iCtrlPt, const Point& ptNewPt)
 {
 	int iCtrlPtCount = m_ptvCtrlPts.size();
-
+/*
 #ifdef _DEBUG
 	assert(iCtrlPt < iCtrlPtCount);
-#endif // _DEBUG
-
+#endif // _DEBUG */
 	if (iCtrlPt < iCtrlPtCount) {
 		m_ptvCtrlPts[iCtrlPt] = ptNewPt;
 
@@ -318,6 +342,22 @@ void Curve::moveControlPoint(const int iCtrlPt, const Point& ptNewPt)
 				m_ptvCtrlPts[iCtrlPt].x = m_ptvCtrlPts[iCtrlPt + 1].x - s_fCtrlPtXEpsilon;
 		}
 	}
+	else
+	{
+		int iCtrlPtI = iCtrlPt - 100;
+		m_ptvCtrlPtsInner[iCtrlPtI] = ptNewPt;
+
+		// adjust the x value so that it falls within the
+		// points right before and after it
+		if (iCtrlPt > 0) {
+			if (m_ptvCtrlPtsInner[iCtrlPtI].x < m_ptvCtrlPtsInner[iCtrlPtI - 1].x + s_fCtrlPtXEpsilon)
+				m_ptvCtrlPtsInner[iCtrlPtI].x = m_ptvCtrlPtsInner[iCtrlPtI - 1].x + s_fCtrlPtXEpsilon;
+		}
+		if (iCtrlPt < iCtrlPtCount - 1) {
+			if (m_ptvCtrlPtsInner[iCtrlPtI].x > m_ptvCtrlPtsInner[iCtrlPtI + 1].x - s_fCtrlPtXEpsilon)
+				m_ptvCtrlPtsInner[iCtrlPtI].x = m_ptvCtrlPtsInner[iCtrlPtI + 1].x - s_fCtrlPtXEpsilon;
+		}
+	}
 
 	m_bDirty = true;
 }
@@ -326,54 +366,93 @@ void Curve::moveControlPoints(const std::vector<int>& ivCtrlPts, const Point& pt
 							  const float fMinY, const float fMaxY)
 {
 	int iCtrlPtCount = m_ptvCtrlPts.size();
-
+	/*
 #ifdef _DEBUG
 	for (int iCheck = 0; iCheck < ivCtrlPts.size(); ++iCheck) {
 		assert(ivCtrlPts[iCheck] < iCtrlPtCount);
 	}
 #endif // _DEBUG
-
+*/
 	Point ptActualOffset = ptOffset;
 	int i;
-
 	// make sure the will be moved points will not run over other
 	// static control points. Also limit the y value.
 	for (i = 0; i < ivCtrlPts.size(); ++i) {
 		int iCtrlPt = ivCtrlPts[i];
+		if (iCtrlPt < iCtrlPtCount) {
+			if (m_ptvCtrlPts[iCtrlPt].y + ptActualOffset.y > fMaxY)
+				ptActualOffset.y = fMaxY - m_ptvCtrlPts[iCtrlPt].y;
+			if (m_ptvCtrlPts[iCtrlPt].y + ptActualOffset.y < fMinY)
+				ptActualOffset.y = fMinY - m_ptvCtrlPts[iCtrlPt].y;
 
-		if (m_ptvCtrlPts[iCtrlPt].y + ptActualOffset.y > fMaxY)
-			ptActualOffset.y = fMaxY - m_ptvCtrlPts[iCtrlPt].y;
-		if (m_ptvCtrlPts[iCtrlPt].y + ptActualOffset.y < fMinY)
-			ptActualOffset.y = fMinY - m_ptvCtrlPts[iCtrlPt].y;
+			if (iCtrlPt > 0) {
+				if (std::find(ivCtrlPts.begin(), ivCtrlPts.end(), iCtrlPt - 1) == ivCtrlPts.end()) {
+					if (m_ptvCtrlPts[iCtrlPt].x + ptActualOffset.x < m_ptvCtrlPts[iCtrlPt - 1].x + s_fCtrlPtXEpsilon)
+						ptActualOffset.x = m_ptvCtrlPts[iCtrlPt - 1].x + s_fCtrlPtXEpsilon - m_ptvCtrlPts[iCtrlPt].x;
+				}
+			}
+			else { // iCtrlPt == 0
+				if (m_ptvCtrlPts[iCtrlPt].x + ptActualOffset.x < 0.0f)
+					ptActualOffset.x = -m_ptvCtrlPts[iCtrlPt].x;
+			}
 
-		if (iCtrlPt > 0) {
-			if (std::find(ivCtrlPts.begin(), ivCtrlPts.end(), iCtrlPt - 1) == ivCtrlPts.end()) {
-				if (m_ptvCtrlPts[iCtrlPt].x + ptActualOffset.x < m_ptvCtrlPts[iCtrlPt - 1].x + s_fCtrlPtXEpsilon)
-					ptActualOffset.x = m_ptvCtrlPts[iCtrlPt - 1].x + s_fCtrlPtXEpsilon - m_ptvCtrlPts[iCtrlPt].x;
+			if (iCtrlPt < iCtrlPtCount - 1) {
+				if (std::find(ivCtrlPts.begin(), ivCtrlPts.end(), iCtrlPt + 1) == ivCtrlPts.end()) {
+					if (m_ptvCtrlPts[iCtrlPt].x + ptActualOffset.x > m_ptvCtrlPts[iCtrlPt + 1].x - s_fCtrlPtXEpsilon)
+						ptActualOffset.x = m_ptvCtrlPts[iCtrlPt + 1].x - s_fCtrlPtXEpsilon - m_ptvCtrlPts[iCtrlPt].x;
+				}
+			}
+			else { // iCtrlPt == iCtrlPtCount - 1
+				if (m_ptvCtrlPts[iCtrlPt].x + ptActualOffset.x > m_fMaxX)
+					ptActualOffset.x = m_fMaxX - m_ptvCtrlPts[iCtrlPt].x;
 			}
 		}
-		else { // iCtrlPt == 0
-			if (m_ptvCtrlPts[iCtrlPt].x + ptActualOffset.x < 0.0f)
-				ptActualOffset.x = -m_ptvCtrlPts[iCtrlPt].x;
-		}
 
-		if (iCtrlPt < iCtrlPtCount - 1) {
-			if (std::find(ivCtrlPts.begin(), ivCtrlPts.end(), iCtrlPt + 1) == ivCtrlPts.end()) {
-				if (m_ptvCtrlPts[iCtrlPt].x + ptActualOffset.x > m_ptvCtrlPts[iCtrlPt + 1].x - s_fCtrlPtXEpsilon)
-					ptActualOffset.x = m_ptvCtrlPts[iCtrlPt + 1].x - s_fCtrlPtXEpsilon - m_ptvCtrlPts[iCtrlPt].x;
+		else {
+			iCtrlPt = ivCtrlPts[i] - 100;
+			if (m_ptvCtrlPtsInner[iCtrlPt].y + ptActualOffset.y > fMaxY)
+				ptActualOffset.y = fMaxY - m_ptvCtrlPtsInner[iCtrlPt].y;
+			if (m_ptvCtrlPtsInner[iCtrlPt].y + ptActualOffset.y < fMinY)
+				ptActualOffset.y = fMinY - m_ptvCtrlPtsInner[iCtrlPt].y;
+
+			if (iCtrlPt > 0) {
+				if (std::find(ivCtrlPts.begin(), ivCtrlPts.end(), iCtrlPt - 1) == ivCtrlPts.end()) {
+					if (m_ptvCtrlPtsInner[iCtrlPt].x + ptActualOffset.x < m_ptvCtrlPtsInner[iCtrlPt - 1].x + s_fCtrlPtXEpsilon)
+						ptActualOffset.x = m_ptvCtrlPtsInner[iCtrlPt - 1].x + s_fCtrlPtXEpsilon - m_ptvCtrlPtsInner[iCtrlPt].x;
+				}
+			}
+			else { // iCtrlPt == 0
+				if (m_ptvCtrlPtsInner[iCtrlPt].x + ptActualOffset.x < 0.0f)
+					ptActualOffset.x = -m_ptvCtrlPtsInner[iCtrlPt].x;
+			}
+
+			if (iCtrlPt < iCtrlPtCount - 1) {
+				if (std::find(ivCtrlPts.begin(), ivCtrlPts.end(), iCtrlPt + 1) == ivCtrlPts.end()) {
+					if (m_ptvCtrlPtsInner[iCtrlPt].x + ptActualOffset.x > m_ptvCtrlPtsInner[iCtrlPt + 1].x - s_fCtrlPtXEpsilon)
+						ptActualOffset.x = m_ptvCtrlPtsInner[iCtrlPt + 1].x - s_fCtrlPtXEpsilon - m_ptvCtrlPtsInner[iCtrlPt].x;
+				}
+			}
+			else { // iCtrlPt == iCtrlPtCount - 1
+				if (m_ptvCtrlPtsInner[iCtrlPt].x + ptActualOffset.x > m_fMaxX)
+					ptActualOffset.x = m_fMaxX - m_ptvCtrlPtsInner[iCtrlPt].x;
 			}
 		}
-		else { // iCtrlPt == iCtrlPtCount - 1
-			if (m_ptvCtrlPts[iCtrlPt].x + ptActualOffset.x > m_fMaxX)
-				ptActualOffset.x = m_fMaxX - m_ptvCtrlPts[iCtrlPt].x;
-		}
+
 	}
+
 
 	// move the control points
 	for (i = 0; i < ivCtrlPts.size(); ++i) {
 		int iCtrlPt = ivCtrlPts[i];
-		m_ptvCtrlPts[iCtrlPt].x += ptActualOffset.x;
-		m_ptvCtrlPts[iCtrlPt].y += ptActualOffset.y;
+		if (iCtrlPt < iCtrlPtCount) {
+			m_ptvCtrlPts[iCtrlPt].x += ptActualOffset.x;
+			m_ptvCtrlPts[iCtrlPt].y += ptActualOffset.y;
+		}
+		else {
+			iCtrlPt = ivCtrlPts[i] - 100;
+			m_ptvCtrlPtsInner[iCtrlPt].x += ptActualOffset.x;
+			m_ptvCtrlPtsInner[iCtrlPt].y += ptActualOffset.y;
+		}
 	}
 
 	m_bDirty = true;
@@ -404,15 +483,24 @@ void Curve::drawEvaluatedCurveSegments() const
 void Curve::drawControlPoint(int iCtrlPt) const
 {
 	reevaluate();
-
 	double fPointSize;
 	glGetDoublev(GL_POINT_SIZE, &fPointSize);
 	glPointSize(7.0);
-
-	glColor3d(1,0,0);
-	glBegin(GL_POINTS);
+	if (iCtrlPt < m_ptvCtrlPts.size())
+	{
+		glColor3d(1, 0, 0);
+		glBegin(GL_POINTS);
 		glVertex2f(m_ptvCtrlPts[iCtrlPt].x, m_ptvCtrlPts[iCtrlPt].y);
-	glEnd();
+		glEnd();
+	}
+	else
+	{
+		iCtrlPt = iCtrlPt - 100;
+		glColor3d(1, 0, 0);
+		glBegin(GL_POINTS);
+		glVertex2f(m_ptvCtrlPtsInner[iCtrlPt].x, m_ptvCtrlPtsInner[iCtrlPt].y);
+		glEnd();
+	}
 
 	glPointSize(fPointSize);
 }
@@ -439,6 +527,19 @@ void Curve::drawControlPoints() const
 		}
 	glEnd();
 
+	if (m_bInner == true) {
+		//m_ptvCtrlPtsInner
+		glPointSize(7.0);
+		glColor3d(0.7, 0.7, 1.0);
+		glBegin(GL_POINTS);
+		for (std::vector<Point>::const_iterator kit = m_ptvCtrlPtsInner.begin();
+		kit != m_ptvCtrlPtsInner.end();
+			++kit) {
+			glVertex2f(kit->x, kit->y);
+		}
+		glEnd();
+	}
+
 	glPointSize(fPointSize);
 }
 
@@ -456,7 +557,7 @@ void Curve::reevaluate() const
 			m_pceEvaluator->evaluateCurve(m_ptvCtrlPts, 
 				m_ptvEvaluatedCurvePts, 
 				m_fMaxX, 
-				m_bWrap, m_fTension);
+				m_bWrap, m_fTension, m_bInner, m_ptvCtrlPtsInner);
 			std::sort(m_ptvEvaluatedCurvePts.begin(),
 				m_ptvEvaluatedCurvePts.end(),
 				PointSmallerXCompare());
@@ -464,6 +565,7 @@ void Curve::reevaluate() const
 			m_bDirty = false;
 		}
 	}
+	
 }
 
 void Curve::invalidate() const

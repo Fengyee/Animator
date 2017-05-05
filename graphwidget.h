@@ -103,6 +103,7 @@ public:
 	void currCurveFreeze(bool bFreeze);
 	void invalidateAllCurves();
 	void currCurveTension(float tension);
+	void curveInnerPts(bool bInner);
 	// note that this value is evaluated lazily (it's only updated
 	// after a redraw.
 	Fl_Color currCurveColor() const { return m_flcCurrCurve; }
