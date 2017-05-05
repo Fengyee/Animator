@@ -152,7 +152,7 @@ ModelerUIWindows::ModelerUIWindows() {
 		  { Fl_Light_Button* o = m_pbtInnerPts = new Fl_Light_Button(370, 490, 90, 20, "Inner Points");
 		  o->labelsize(12);
 		  o->user_data((void*)(this));
-
+		  }
 		  { Fl_Input* o = averageMask = new Fl_Input(160, 510, 90, 20, "AverageMask:");
 		  o->labelsize(10);
 		  o->textsize(10);
@@ -167,7 +167,6 @@ ModelerUIWindows::ModelerUIWindows() {
 		  o->value(1);
 		  o->user_data((void*)(this));
 		  o->align(FL_ALIGN_RIGHT);
-
 		  }
           o->end();
         }
