@@ -9,7 +9,7 @@ vector<string> split(const string& input, char splitter, bool handle_double_quot
 void SubdivisionCurveEvaluator::evaluateCurve(const std::vector<Point>& ptvCtrlPts,
 	std::vector<Point>& ptvEvaluatedCurvePts,
 	const float& fAniLength,
-	const bool& bWrap, float m_fTension) const
+	const bool& bWrap, float m_fTension, bool m_bInner, std::vector<Point>& m_ptvCtrlPtsInner) const
 {
 	vector<double> averageMask;
 	string amstr(ModelerApplication::getPUI()->averageMask->value());
