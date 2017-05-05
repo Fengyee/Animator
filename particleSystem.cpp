@@ -115,10 +115,10 @@ void ParticleSystem::computeForcesAndUpdateParticles(int index)
 		Vec3f g(1, 1, 1);
 		if (isMirror == 1)
 		{
-			g = Vec3f(0, -9.8, 0);
+			g = Vec3f(0, 9.8, 0);
 		}
 		else {
-			g = Vec3f(0, 9.8, 0);
+			g = Vec3f(0, -9.8, 0);
 		}
 		float dragCoef = -0.1;
 		for (auto it = particles->begin(); it != particles->end(); it++)
@@ -245,7 +245,7 @@ void ParticleSystem::bakeParticles(float t)
 		{
 			for (int j = 0; j < 10; ++j)
 			{
-				newParticles->push_back(spawnParticle(Vec4f(0.1 * j, -3.2, 0, 1)));
+				newParticles->push_back(spawnParticle(Vec4f(0.1 * j, -0.9, 0, 1)));
 			}
 		}
 		bakedParticles[0] = newParticles;
@@ -273,7 +273,7 @@ void ParticleSystem::bakeParticles(float t)
 	{
 		for (int j = 0; j < 10; ++j)
 		{
-			tmp->push_back(spawnParticle(Vec4f(0.1 * j, -3.2, 0, 1)));
+			tmp->push_back(spawnParticle(Vec4f(0.1 * j, -0.9, 0, 1)));
 		}
 	}
 

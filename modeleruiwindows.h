@@ -22,6 +22,7 @@
 #include "indicatorwindow.h"
 #include <FL/Fl_Slider.H>
 #include <FL/Fl_Output.H>
+#include <FL/Fl_Input.H>
 #include "modelerview.h"
 
 class ModelerUIWindows {
