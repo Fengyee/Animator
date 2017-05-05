@@ -12,8 +12,10 @@
 #include "modelerapp.h"
 #include "modelerdraw.h"
 #include "particleSystem.h"
+#include "modelerui.h"
 #include "mat.h"
 #include "camera.h"
+#include "bitmap.h"
 
 #include <stdlib.h>
 
@@ -62,42 +64,32 @@ Mat4f getModelViewMatrix()
 		m[12], m[13], m[14], m[15]);
 	return matMV.transpose(); // because the matrix GL returns is column major
 }
-void drawParticles(float t) {
-	// WorldMatrix = CameraMatrix.inverse() * getModelViewMatrix();
-	/*{
-		glPushMatrix();
-		Vec4f worldpoint = WorldMatrix * Vec4f(0, 0, 0, 1);
-		glTranslatef(worldpoint[0], worldpoint[1], worldpoint[2]);
-		setDiffuseColor(COLOR_YELLOW);
-		drawSphere(0.3);
-		glPopMatrix();
-	}
-	{
-		glPushMatrix();
-		setDiffuseColor(COLOR_GREEN);
-		drawSphere(0.3);
-		glPopMatrix();
-	}*/
+void drawParticles(float t, int isMirror) {
 	glPushMatrix();
 	// Draw particles
 	// glTranslatef(WorldPoint[0], WorldPoint[1], WorldPoint[2]);
 	ParticleSystem* ps = ModelerApplication::Instance()->GetParticleSystem();
 	if (ps != NULL)
 	{
-		ps->drawParticles(t);
+		ps->drawParticles(t, isMirror, 0);
 	}
 	// printf("current world point: %f, %f, %f, %f\n", WorldPoint[0], WorldPoint[1], WorldPoint[2], WorldPoint[3]);
 	glPopMatrix();
 }
 
-// This is a list of the controls for the RobotArm
-// We'll use these constants to access the values 
-// of the controls from the user interface.
-/*enum RobotArmControls
-{ 
-    BASE_ROTATION=0, LOWER_TILT, UPPER_TILT, CLAW_ROTATION,
-        BASE_LENGTH, LOWER_LENGTH, UPPER_LENGTH, PARTICLE_COUNT, NUMCONTROLS, 
-};*/
+void drawFire(float t, int isMirror, GLint texName) {
+	glPushMatrix();
+	// Draw particles
+	// glTranslatef(WorldPoint[0], WorldPoint[1], WorldPoint[2]);
+	ParticleSystem* fire = ModelerApplication::Instance()->GetFire();
+	if (fire != NULL)
+	{
+		fire->drawParticles(t, isMirror, texName);
+	}
+	// printf("current world point: %f, %f, %f, %f\n", WorldPoint[0], WorldPoint[1], WorldPoint[2], WorldPoint[3]);
+	glPopMatrix();
+}
+
 enum RobotArmControls
 {
 	XPOS, YPOS, ZPOS,
@@ -118,23 +110,73 @@ enum RobotArmControls
 	NUMCONTROLS,
 };
 
-// LSYSTEM_TYPE, LSYSTEM_ITER, LS_LENGTH,
-void ground(float h);
-void base(float h);
-void rotation_base(float h);
-void lower_arm(float h);
-void upper_arm(float h);
-void claw(float h);
-void y_box(float h);
 
 // To make a RobotArm, we inherit off of ModelerView
 class RobotArm : public ModelerView 
 {
 public:
     RobotArm(int x, int y, int w, int h, char *label) 
-        : ModelerView(x,y,w,h,label) {}
+        : ModelerView(x,y,w,h,label), textureImage(NULL) {}
+	GLuint texName;
+	unsigned char* textureImage;
+	int tex_height;
+	int tex_width;
+
+	void createTexture(int _width);
     virtual void draw();
 };
+
+void RobotArm::createTexture(int _width)
+{
+	static int width = 0;
+	static int height = 0;
+
+	if (textureImage == NULL)
+	{
+		unsigned char *image;
+		const char* filename = "C:\\Users\\feng8\\Documents\\GitHub\\Animator\\fire.bmp";
+		
+		if ((image = readBMP(filename, width, height)) == NULL)
+		{
+			fl_alert("Can't load bitmap file...");
+			// ModelerApplication::Instance()->SetControlValue(DRAW_TEXTURE, 0);
+			return;
+		}
+		// printf("height and width is: %d, %d\n", height, width);
+		textureImage = image;
+		glClearColor(0.0, 0.0, 0.0, 0.0);
+		glShadeModel(GL_FLAT);
+		glEnable(GL_DEPTH_TEST);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glGenTextures(1, &texName);
+		glBindTexture(GL_TEXTURE_2D, texName);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureImage);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	/* 
+	if (_width <= 0) _width = width;
+	if (width > 0 && height > 0)
+	{
+		double hwfactor = height / (double)width;
+		glEnable(GL_TEXTURE_2D);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+		glBindTexture(GL_TEXTURE_2D, texName);
+		glBegin(GL_QUADS);
+		glTexCoord2f(0.0, 0.0); glVertex3f(0.0, 0.0, 0.0);
+		glTexCoord2f(0.0, 1.0); glVertex3f(0.0, _width * hwfactor, 0.0);
+		glTexCoord2f(1.0, 1.0); glVertex3f(_width, _width * hwfactor, 0.0);
+		glTexCoord2f(1.0, 0.0); glVertex3f(_width, 0.0, 0.0);
+		glEnd();
+		glFlush();
+		glDisable(GL_TEXTURE_2D);
+	}
+	*/
+}
 
 // We need to make a creator function, mostly because of
 // nasty API stuff that we'd rather stay away from.
@@ -155,98 +197,87 @@ ModelerView* createRobotArm(int x, int y, int w, int h, char *label)
 // method of ModelerView to draw out RobotArm
 void RobotArm::draw()
 {
-	/* pick up the slider values */
-	/*
-	float theta = VAL( BASE_ROTATION );
-	float phi = VAL( LOWER_TILT );
-	float psi = VAL( UPPER_TILT );
-	float cr = VAL( CLAW_ROTATION );
-	float h1 = VAL( BASE_LENGTH );
-	float h2 = VAL( LOWER_LENGTH );
-	float h3 = VAL( UPPER_LENGTH );
-	float pc = VAL( PARTICLE_COUNT );
-	*/
-
+	createTexture(5);
     // This call takes care of a lot of the nasty projection 
     // matrix stuff
-    ModelerView::draw();
+    ModelerView::draw(); 
 	CameraMatrix = getModelViewMatrix();
 
-	static GLfloat lmodel_ambient[] = {0.4,0.4,0.4,1.0};
+	// static GLfloat lmodel_ambient[] = {0.4,0.4,0.4,1.0};
 
-	// define the model
-    /*
-	ground(-0.2);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_STENCIL_TEST);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+	glStencilFunc(GL_NEVER, 1, 0xFF);
+	glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);  // draw 1s on test fail (always)
 
-	base(0.8);
+												// draw stencil pattern
+	glStencilMask(0xFF);
+	glClear(GL_STENCIL_BUFFER_BIT);  // needs mask=0xFF
 
-    glTranslatef( 0.0, 0.8, 0.0 );			// move to the top of the base
-    glRotatef( theta, 0.0, 1.0, 0.0 );		// turn the whole assembly around the y-axis. 
-	rotation_base(h1);						// draw the rotation base
-
-    glTranslatef( 0.0, h1, 0.0 );			// move to the top of the base
-    glRotatef( phi, 0.0, 0.0, 1.0 );		// rotate around the z-axis for the lower arm
-	glTranslatef( -0.1, 0.0, 0.4 );
-	lower_arm(h2);							// draw the lower arm
-
-    glTranslatef( 0.0, h2, 0.0 );			// move to the top of the lower arm
-    glRotatef( psi, 0.0, 0.0, 1.0 );		// rotate  around z-axis for the upper arm
-	upper_arm(h3);							// draw the upper arm
-
-	glTranslatef( 0.0, h3, 0.0 );
-	glRotatef( cr, 0.0, 0.0, 1.0 );
-	claw(1.0);
-    */
-		// draw the floor
-	setAmbientColor(.1f,.1f,.1f);
-	setDiffuseColor(COLOR_RED);
+	/* Now drawing the floor just tags the floor pixels
+	as stencil value 1. */
+	// draw the floor
+	setAmbientColor(.1f, .1f, .1f);
+	setDiffuseColor(COLOR_RED, 0.4);
 	glPushMatrix();
-	glTranslated(-5, -2,-5);
-	drawBox(10,0.01f,10);
+	glTranslated(-5, -2, -5);
+	drawBox(10, 0.01f, 10);
 	glPopMatrix();
+
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+	glStencilMask(0x00);
+	// draw where stencil's value is 0
+	glStencilFunc(GL_EQUAL, 0, 0xFF);
+	/* (nothing to draw) */
+	// draw only where stencil's value is 1
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
 
 	// draw the sample model
 	setAmbientColor(.1f,.1f,.1f);
+	int isMirror = 1;
 
 	glPushMatrix();
-
-	int level_of_detail = (int)VAL(DRAW_LEVEL);
-	glTranslated(VAL(XPOS), VAL(YPOS), VAL(ZPOS));
-	/*
-	if ((int)VAL(DRAW_TEXTURE))
+	if (isMirror == 1)
+	{
+		glTranslated(0, -4, 0);
+		glScaled(1, -1, 1);
+	}
+drawModel:
 	{
 		glPushMatrix();
-		glTranslated(0, 0, 0);
-		createTexture(5);
-		glPopMatrix();
-	}
-	   */ 
-    //set variables
-	float unit_block = 0.75;
-	float body_x = 2.0;
-	float body_y = 3.0;
-	float body_z = 1.0;
-	float head = 2.0;
-	float arm_y = 1.5;
-	float arm_x = 0.9;
-	float arm_z = 1.0;
-	float foot_y = 0.5;
-	float foot_x = 0.9;
-	float foot_z = 1.1;
-	float body_init_y = -2 + unit_block * (arm_y * 2 + foot_y);
-	float body_init_x = -1 * body_y / 2 * unit_block;
-	float body_init_z = -1;
-	float thick = 0.01;
-	float hair_thick = 0.1;
-	float eye_x = 0.5;
-	float eye_y = 0.25;
-	float mouth_x = 0.5;
-	float mouth_y = 0.25;
-	float sleeve_y = 0.25;
+
+		int level_of_detail = (int)VAL(DRAW_LEVEL);
+		glTranslated(VAL(XPOS), VAL(YPOS), VAL(ZPOS));
+
+		   //set variables
+		float unit_block = 0.75;
+		float body_x = 2.0;
+		float body_y = 3.0;
+		float body_z = 1.0;
+		float head = 2.0;
+		float arm_y = 1.5;
+		float arm_x = 0.9;
+		float arm_z = 1.0;
+		float foot_y = 0.5;
+		float foot_x = 0.9;
+		float foot_z = 1.1;
+		float body_init_y = -2 + unit_block * (arm_y * 2 + foot_y);
+		float body_init_x = -1 * body_y / 2 * unit_block;
+		float body_init_z = -1;
+		float thick = 0.01;
+		float hair_thick = 0.1;
+		float eye_x = 0.5;
+		float eye_y = 0.25;
+		float mouth_x = 0.5;
+		float mouth_y = 0.25;
+		float sleeve_y = 0.25;
 		// draw body
 		glPushMatrix();
 		glTranslated(body_init_x, body_init_y, body_init_z);
-        
+
 		if (VAL(DRAW_LEVEL) > 2)
 		{
 			if (VAL(MIKU_CLOTHES))
@@ -336,7 +367,7 @@ void RobotArm::draw()
 		}
 		// draw head
 		glPushMatrix();
-		
+
 		glTranslated(0, body_y * unit_block, -1 * (head - body_z) / 2 * unit_block);
 
 		// head resize implementation
@@ -349,7 +380,7 @@ void RobotArm::draw()
 		glRotated(VAL(HEAD_ROTATION_Y) * (VAL(HAPPINESS) + 2) / 2, 0.0, 1.0, 0.0);
 		glRotated(VAL(HEAD_ROTATION_Z) * (VAL(HAPPINESS) + 2) / 2, 0.0, 0.0, 1.0);
 		glTranslated(-1 * head / 2 * unit_block, 0, -1 * head / 2 * unit_block);
-		
+
 		// torus
 		if (VAL(DRAW_LEVEL) > 2)
 		{
@@ -556,7 +587,7 @@ void RobotArm::draw()
 		glRotated(VAL(LEFT_UPPER_ARM_ROTATION_Y) * (VAL(HAPPINESS) + 2) / 2, 0.0, 1.0, 0.0);
 		glRotated(VAL(LEFT_UPPER_ARM_ROTATION_Z) * (VAL(HAPPINESS) + 2) / 2, 0.0, 0.0, 1.0);
 		glTranslated(-1 * arm_x * unit_block, -1 * arm_y * unit_block, -1 * arm_z / 2 * unit_block);
-		
+
 		if (VAL(DRAW_LEVEL) > 1)
 		{
 			// sleeve
@@ -596,23 +627,23 @@ void RobotArm::draw()
 		{
 			if (VAL(DRAW_LEVEL) > 1)
 			{
-			setDiffuseColor(COLOR_MIKU);
-			glPushMatrix();
-			glTranslated(0, 0, -1 * thick);
-			glScaled(arm_x * unit_block, sleeve_y * unit_block, 1);
-			drawBox(1, 1, thick);
-			glTranslated(0, 0, arm_z * unit_block + thick);
-			glScaled(1, 1, 1);
-			drawBox(1, 1, thick);
-			glPopMatrix();
-			glPushMatrix();
-			glTranslated(-1 * thick, 0, -1 * thick);
-			glScaled(1, sleeve_y * unit_block, arm_z * unit_block);
-			drawBox(thick, 1, 1);
-			glTranslated(arm_x * unit_block + thick, 0, 0);
-			glScaled(1, 1, 1);
-			drawBox(thick, 1, 1);
-			glPopMatrix();
+				setDiffuseColor(COLOR_MIKU);
+				glPushMatrix();
+				glTranslated(0, 0, -1 * thick);
+				glScaled(arm_x * unit_block, sleeve_y * unit_block, 1);
+				drawBox(1, 1, thick);
+				glTranslated(0, 0, arm_z * unit_block + thick);
+				glScaled(1, 1, 1);
+				drawBox(1, 1, thick);
+				glPopMatrix();
+				glPushMatrix();
+				glTranslated(-1 * thick, 0, -1 * thick);
+				glScaled(1, sleeve_y * unit_block, arm_z * unit_block);
+				drawBox(thick, 1, 1);
+				glTranslated(arm_x * unit_block + thick, 0, 0);
+				glScaled(1, 1, 1);
+				drawBox(thick, 1, 1);
+				glPopMatrix();
 			}
 		}
 
@@ -625,7 +656,7 @@ void RobotArm::draw()
 		// draw left lower arm
 		drawBox(1, 1, 1);
 		glPopMatrix();
-		
+
 		// back to upper left arm
 		if (VAL(MIKU_CLOTHES))
 			setDiffuseColor(COLOR_SKIN);
@@ -643,7 +674,7 @@ void RobotArm::draw()
 		//drawCylinder(0.4, 0.2, 0.2);
 
 		//glRotated(-90, 0.0, 1.0, 0.0);
-		
+
 		glTranslated(body_x * unit_block, body_y * unit_block - arm_y * unit_block, 0);
 
 		// WHOLE ARM ROTATION IMPLEMENTATION
@@ -693,23 +724,23 @@ void RobotArm::draw()
 		{
 			if (VAL(DRAW_LEVEL) > 1)
 			{
-			setDiffuseColor(COLOR_MIKU);
-			glPushMatrix();
-			glTranslated(0, 0, -1 * thick);
-			glScaled(arm_x * unit_block, sleeve_y * unit_block, 1);
-			drawBox(1, 1, thick);
-			glTranslated(0, 0, arm_z * unit_block + thick);
-			glScaled(1, 1, 1);
-			drawBox(1, 1, thick);
-			glPopMatrix();
-			glPushMatrix();
-			glTranslated(-1 * thick, 0, -1 * thick);
-			glScaled(1, sleeve_y * unit_block, arm_z * unit_block);
-			drawBox(thick, 1, 1);
-			glTranslated(arm_x * unit_block + thick, 0, 0);
-			glScaled(1, 1, 1);
-			drawBox(thick, 1, 1);
-			glPopMatrix();
+				setDiffuseColor(COLOR_MIKU);
+				glPushMatrix();
+				glTranslated(0, 0, -1 * thick);
+				glScaled(arm_x * unit_block, sleeve_y * unit_block, 1);
+				drawBox(1, 1, thick);
+				glTranslated(0, 0, arm_z * unit_block + thick);
+				glScaled(1, 1, 1);
+				drawBox(1, 1, thick);
+				glPopMatrix();
+				glPushMatrix();
+				glTranslated(-1 * thick, 0, -1 * thick);
+				glScaled(1, sleeve_y * unit_block, arm_z * unit_block);
+				drawBox(thick, 1, 1);
+				glTranslated(arm_x * unit_block + thick, 0, 0);
+				glScaled(1, 1, 1);
+				drawBox(thick, 1, 1);
+				glPopMatrix();
 			}
 		}
 
@@ -745,26 +776,26 @@ void RobotArm::draw()
 		// sleeve
 		if (VAL(DRAW_LEVEL) > 1)
 		{
-		if (VAL(MIKU_SHOES))
-			setDiffuseColor(COLOR_MIKU);
-		else
-			setDiffuseColor(COLOR_DARK);
-		glPushMatrix();
-		glTranslated(0, 0, -1 * thick);
-		glScaled(arm_x * unit_block, sleeve_y * unit_block, 1);
-		drawBox(1, 1, thick);
-		glTranslated(0, 0, arm_z * unit_block + thick);
-		glScaled(1, 1, 1);
-		drawBox(1, 1, thick);
-		glPopMatrix();
-		glPushMatrix();
-		glTranslated(-1 * thick, 0, -1 * thick);
-		glScaled(1, sleeve_y * unit_block, arm_z * unit_block);
-		drawBox(thick, 1, 1);
-		glTranslated(arm_x * unit_block + thick, 0, 0);
-		glScaled(1, 1, 1);
-		drawBox(thick, 1, 1);
-		glPopMatrix();
+			if (VAL(MIKU_SHOES))
+				setDiffuseColor(COLOR_MIKU);
+			else
+				setDiffuseColor(COLOR_DARK);
+			glPushMatrix();
+			glTranslated(0, 0, -1 * thick);
+			glScaled(arm_x * unit_block, sleeve_y * unit_block, 1);
+			drawBox(1, 1, thick);
+			glTranslated(0, 0, arm_z * unit_block + thick);
+			glScaled(1, 1, 1);
+			drawBox(1, 1, thick);
+			glPopMatrix();
+			glPushMatrix();
+			glTranslated(-1 * thick, 0, -1 * thick);
+			glScaled(1, sleeve_y * unit_block, arm_z * unit_block);
+			drawBox(thick, 1, 1);
+			glTranslated(arm_x * unit_block + thick, 0, 0);
+			glScaled(1, 1, 1);
+			drawBox(thick, 1, 1);
+			glPopMatrix();
 		}
 
 		if (VAL(MIKU_SHOES))
@@ -843,26 +874,26 @@ void RobotArm::draw()
 		// sleeve
 		if (VAL(DRAW_LEVEL) > 1)
 		{
-		if (VAL(MIKU_SHOES))
-			setDiffuseColor(COLOR_MIKU);
-		else
-			setDiffuseColor(COLOR_DARK);
-		glPushMatrix();
-		glTranslated(0, 0, -1 * thick);
-		glScaled(arm_x * unit_block, sleeve_y * unit_block, 1);
-		drawBox(1, 1, thick);
-		glTranslated(0, 0, arm_z * unit_block + thick);
-		glScaled(1, 1, 1);
-		drawBox(1, 1, thick);
-		glPopMatrix();
-		glPushMatrix();
-		glTranslated(-1 * thick, 0, -1 * thick);
-		glScaled(1, sleeve_y * unit_block, arm_z * unit_block);
-		drawBox(thick, 1, 1);
-		glTranslated(arm_x * unit_block + thick, 0, 0);
-		glScaled(1, 1, 1);
-		drawBox(thick, 1, 1);
-		glPopMatrix();
+			if (VAL(MIKU_SHOES))
+				setDiffuseColor(COLOR_MIKU);
+			else
+				setDiffuseColor(COLOR_DARK);
+			glPushMatrix();
+			glTranslated(0, 0, -1 * thick);
+			glScaled(arm_x * unit_block, sleeve_y * unit_block, 1);
+			drawBox(1, 1, thick);
+			glTranslated(0, 0, arm_z * unit_block + thick);
+			glScaled(1, 1, 1);
+			drawBox(1, 1, thick);
+			glPopMatrix();
+			glPushMatrix();
+			glTranslated(-1 * thick, 0, -1 * thick);
+			glScaled(1, sleeve_y * unit_block, arm_z * unit_block);
+			drawBox(thick, 1, 1);
+			glTranslated(arm_x * unit_block + thick, 0, 0);
+			glScaled(1, 1, 1);
+			drawBox(thick, 1, 1);
+			glPopMatrix();
 		}
 
 		if (VAL(MIKU_SHOES))
@@ -902,7 +933,7 @@ void RobotArm::draw()
 		glTranslated((arm_x - foot_x) / 2 * unit_block, -1 * foot_y * unit_block, (arm_z - foot_z) / 2 * unit_block);
 		// foot rotation implementation
 		glTranslated(foot_x / 2 * unit_block, foot_y * unit_block, foot_z / 2 * unit_block);
-		glRotated(VAL(RIGHT_FOOT_ROTATION_X) * (VAL(HAPPINESS) + 2) / 2 , 1.0, 0.0, 0.0);
+		glRotated(VAL(RIGHT_FOOT_ROTATION_X) * (VAL(HAPPINESS) + 2) / 2, 1.0, 0.0, 0.0);
 		glTranslated(-1 * foot_x / 2 * unit_block, -1 * foot_y * unit_block, -1 * foot_z / 2 * unit_block);
 		glScaled(foot_x * unit_block, foot_y * unit_block, foot_z * unit_block);
 		drawBox(1, 1, 1);
@@ -927,7 +958,7 @@ void RobotArm::draw()
 
 
 		// back body
-		if (MIKU_CLOTHES) 
+		if (MIKU_CLOTHES)
 		{
 			setDiffuseColor(COLOR_GRAY);
 		}
@@ -953,166 +984,35 @@ void RobotArm::draw()
 		drawCylinder(1, 0.1, 0.2);
 		glPopMatrix();
 		*/
-	glPopMatrix();
+		glPopMatrix();
 
-	drawParticles(t);
+		drawParticles(t, isMirror);
+		// drawFire(t, isMirror, texName);
+	}
+	glPopMatrix();
+	if (isMirror == 1)
+	{
+		glDisable(GL_STENCIL_TEST);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			setAmbientColor(.1f, .1f, .1f);
+			setDiffuseColor(COLOR_RED, 0.4);
+			glPushMatrix();
+			glTranslated(-5, -2, -5);
+			drawBox(10, 0.01f, 10);
+			glPopMatrix();
+		glDisable(GL_BLEND);
+
+		isMirror = 0;
+		glPushMatrix();
+		goto drawModel;
+	}
+		
 	//*** DON'T FORGET TO PUT THIS IN YOUR OWN CODE **/
 	endDraw();
 }
 
-void ground(float h) 
-{
-	glDisable(GL_LIGHTING);
-	glColor3f(0.25,0.65,0.45);
-	glPushMatrix();
-	glScalef(30,0,30);
-	y_box(h);
-	glPopMatrix();
-	glEnable(GL_LIGHTING);
-}
-
-void base(float h) {
-	setDiffuseColor( 0.25, 0.25, 0.25 );
-	setAmbientColor( 0.25, 0.25, 0.25 );
-	glPushMatrix();
-		glPushMatrix();
-			glTranslatef(1.0, h / 2.0, 0.75);
-			drawCylinder(0.25, h / 2.0, h / 2.0);
-		glPopMatrix();
-		glPushMatrix();
-			glTranslatef(1.0, h / 2.0, -1.0);
-			drawCylinder(0.25, h / 2.0, h / 2.0);
-		glPopMatrix();
-		glPushMatrix();
-			glTranslatef(-1.0, h / 2.0, 0.75);
-			drawCylinder(0.25, h / 2.0, h / 2.0);
-		glPopMatrix();
-		glPushMatrix();
-			glTranslatef(-1.0, h / 2.0, -1.0);
-			drawCylinder(0.25, h / 2.0, h / 2.0);
-		glPopMatrix();
-	glScalef(4.0f, h, 4.0f);
-	y_box(1.0f);
-	glPopMatrix();
-}
-
-void rotation_base(float h) {
-	setDiffuseColor( 0.85, 0.75, 0.25 );
-	setAmbientColor( 0.95, 0.75, 0.25 );
-	glPushMatrix();
-		glPushMatrix();
-			glScalef(4.0, h, 4.0);
-			y_box(1.0f); // the rotation base
-		glPopMatrix();
-		setDiffuseColor( 0.15, 0.15, 0.65 );
-		setAmbientColor( 0.15, 0.15, 0.65 );
-		glPushMatrix();
-			glTranslatef(-0.5, h, -0.6);
-			glScalef(2.0, h, 1.6);
-			y_box(1.0f); // the console
-		glPopMatrix();
-		setDiffuseColor( 0.65, 0.65, 0.65 );
-		setAmbientColor( 0.65, 0.65, 0.65 );
-		glPushMatrix();
-			glTranslatef( 0.5, h, 0.6 );
-			glRotatef( -90.0, 1.0, 0.0, 0.0 );
-			drawCylinder( h, 0.05, 0.05 ); // the pipe
-		glPopMatrix();
-	glPopMatrix();
-}
-
-void lower_arm(float h) {					// draw the lower arm
-	setDiffuseColor( 0.85, 0.75, 0.25 );
-	setAmbientColor( 0.95, 0.75, 0.25 );
-	y_box(h);
-}
-
-void upper_arm(float h) {					// draw the upper arm
-	setDiffuseColor( 0.85, 0.75, 0.25 );
-	setAmbientColor( 0.95, 0.75, 0.25 );
-	glPushMatrix();
-	glScalef( 1.0, 1.0, 0.7 );
-	y_box(h);
-	glPopMatrix();
-}
-
-void claw(float h) {
-	setDiffuseColor( 0.25, 0.25, 0.85 );
-	setAmbientColor( 0.25, 0.25, 0.85 );
-
-	glBegin( GL_TRIANGLES );
-
-	glNormal3d( 0.0, 0.0, 1.0);		// +z side
-	glVertex3d( 0.5, 0.0, 0.5);
-	glVertex3d(-0.5, 0.0, 0.5);
-	glVertex3d( 0.5,   h, 0.5);
-
-	glNormal3d( 0.0, 0.0, -1.0);	// -z side
-	glVertex3d( 0.5, 0.0, -0.5);
-	glVertex3d(-0.5, 0.0, -0.5);
-	glVertex3d( 0.5,   h, -0.5);
-
-	glEnd();
-
-	glBegin( GL_QUADS );
-
-	glNormal3d( 1.0,  0.0,  0.0);	// +x side
-	glVertex3d( 0.5, 0.0,-0.5);
-	glVertex3d( 0.5, 0.0, 0.5);
-	glVertex3d( 0.5,   h, 0.5);
-	glVertex3d( 0.5,   h,-0.5);
-
-	glNormal3d( 0.0,-1.0, 0.0);		// -y side
-	glVertex3d( 0.5, 0.0, 0.5);
-	glVertex3d( 0.5, 0.0,-0.5);
-	glVertex3d(-0.5, 0.0,-0.5);
-	glVertex3d(-0.5, 0.0, 0.5);
-
-	glEnd();
-}
-
-void y_box(float h) {
-
-	glBegin( GL_QUADS );
-
-	glNormal3d( 1.0 ,0.0, 0.0);			// +x side
-	glVertex3d( 0.25,0.0, 0.25);
-	glVertex3d( 0.25,0.0,-0.25);
-	glVertex3d( 0.25,  h,-0.25);
-	glVertex3d( 0.25,  h, 0.25);
-
-	glNormal3d( 0.0 ,0.0, -1.0);		// -z side
-	glVertex3d( 0.25,0.0,-0.25);
-	glVertex3d(-0.25,0.0,-0.25);
-	glVertex3d(-0.25,  h,-0.25);
-	glVertex3d( 0.25,  h,-0.25);
-
-	glNormal3d(-1.0, 0.0, 0.0);			// -x side
-	glVertex3d(-0.25,0.0,-0.25);
-	glVertex3d(-0.25,0.0, 0.25);
-	glVertex3d(-0.25,  h, 0.25);
-	glVertex3d(-0.25,  h,-0.25);
-
-	glNormal3d( 0.0, 0.0, 1.0);			// +z side
-	glVertex3d(-0.25,0.0, 0.25);
-	glVertex3d( 0.25,0.0, 0.25);
-	glVertex3d( 0.25,  h, 0.25);
-	glVertex3d(-0.25,  h, 0.25);
-
-	glNormal3d( 0.0, 1.0, 0.0);			// top (+y)
-	glVertex3d( 0.25,  h, 0.25);
-	glVertex3d( 0.25,  h,-0.25);
-	glVertex3d(-0.25,  h,-0.25);
-	glVertex3d(-0.25,  h, 0.25);
-
-	glNormal3d( 0.0,-1.0, 0.0);			// bottom (-y)
-	glVertex3d( 0.25,0.0, 0.25);
-	glVertex3d(-0.25,0.0, 0.25);
-	glVertex3d(-0.25,0.0,-0.25);
-	glVertex3d( 0.25,0.0,-0.25);
-
-	glEnd();
-}
 
 int main()
 {
@@ -1193,10 +1093,12 @@ int main()
 	// call ModelerApplication::Instance()->SetParticleSystem(ps)
 	// to hook it up to the animator interface.
 
-	ParticleSystem *ps = new ParticleSystem(BALL, 20, Vec3f(0.03, 0.03, 0.03), 30.0, 5);
+	ParticleSystem *ps = new ParticleSystem(BALL, 20, Vec3f(0.05, 0.05, 0.05), 30.0, 5);
+	ParticleSystem *fire = new ParticleSystem(BALL, 20, Vec3f(0.05, 0.05, 0.05), 30.0, 5, 1);
 
 	ModelerApplication::Instance()->SetParticleSystem(ps);
+	ModelerApplication::Instance()->SetFire(fire);
 	ModelerApplication::Instance()->Init(&createRobotArm, controls, NUMCONTROLS);
-
+	ModelerApplication::getPUI()->averageMask->value("0.5 0.5");
     return ModelerApplication::Instance()->Run();
 }

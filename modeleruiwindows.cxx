@@ -44,6 +44,7 @@ Fl_Menu_Item ModelerUIWindows::menu_m_pchoCurveType[] = {
  {"Bezier", 0,  0, 0, 0, 0, 0, 12, 0},
  {"Catmull-Rom", 0,  0, 0, 0, 0, 0, 12, 0},
  {"C2-Interpolating", 0,  0, 0, 0, 0, 0, 12, 0},
+ { "SubDivision", 0,  0, 0, 0, 0, 0, 12, 0 },
  {0}
 };
 
@@ -84,7 +85,7 @@ ModelerUIWindows::ModelerUIWindows() {
         o->end();
         Fl_Group::current()->resizable(o);
       }
-      { Fl_Group* o = m_pgrpCurveGroup = new Fl_Group(160, 55, 425, 455, "Curves");
+      { Fl_Group* o = m_pgrpCurveGroup = new Fl_Group(160, 55, 425, 495, "Curves");
         o->labelsize(12);
         { Fl_Group* o = new Fl_Group(160, 55, 420, 410);
           { Fl_Box* o = new Fl_Box(160, 55, 40, 20, "Useless Box");
@@ -110,7 +111,7 @@ ModelerUIWindows::ModelerUIWindows() {
           o->end();
           Fl_Group::current()->resizable(o);
         }
-        { Fl_Group* o = new Fl_Group(160, 470, 420, 40);
+        { Fl_Group* o = new Fl_Group(160, 470, 420, 80);
           { Fl_Box* o = new Fl_Box(160, 470, 75, 20, "Curve Type:");
             o->labelsize(12);
             o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
@@ -147,9 +148,26 @@ ModelerUIWindows::ModelerUIWindows() {
 		  o->user_data((void*)(this));
 		  Fl_Group::current()->resizable(o);
 		  }
+
 		  { Fl_Light_Button* o = m_pbtInnerPts = new Fl_Light_Button(370, 490, 90, 20, "Inner Points");
 		  o->labelsize(12);
 		  o->user_data((void*)(this));
+
+		  { Fl_Input* o = averageMask = new Fl_Input(160, 510, 90, 20, "AverageMask:");
+		  o->labelsize(10);
+		  o->textsize(10);
+		  o->align(FL_ALIGN_RIGHT);
+		  o->user_data((void*)(this));
+		  }
+		  { Fl_Value_Slider* o = m_pDepthSlider = new Fl_Value_Slider(340, 510, 150, 20, "Depth:");
+		  o->type(1);
+		  o->labelsize(12);
+		  o->maximum(10);
+		  o->step(1);
+		  o->value(1);
+		  o->user_data((void*)(this));
+		  o->align(FL_ALIGN_RIGHT);
+
 		  }
           o->end();
         }

@@ -12,8 +12,10 @@
 #include "mat.h"
 #include "modelerapp.h"
 #include "modelerui.h"
+#include <math.h>
 
 extern Mat4f WorldMatrix;
+extern Mat4f getModelViewMatrix();
 
 /***************
  * Constructors
@@ -24,8 +26,20 @@ ParticleSystem::ParticleSystem(ParticleType type, int life, const Vec3f& size, f
 {
 	particleSize = size;
 	bake_fps = bakefps;
+	isMirror = 0;
+	isFire = 0;
 	if (bakefps <= 0) bake_fps = 30.0;
 }
+
+ParticleSystem::ParticleSystem(ParticleType type, int life, const Vec3f& size, float bakefps, int speed, int iF)
+	: simulate(false), dirty(false), particleType(type), particleLife(life), particleNumber(speed), isFire(iF)
+{
+	particleSize = size;
+	bake_fps = bakefps;
+	isMirror = 0;
+	if (bakefps <= 0) bake_fps = 30.0;
+}
+
 
 
 /*************
@@ -95,24 +109,62 @@ void ParticleSystem::resetSimulation(float t)
 /** Compute forces and update particles **/
 void ParticleSystem::computeForcesAndUpdateParticles(int index)
 {
-	list<Particle>* particles = bakedParticles[index];
-	Vec3f g(0, -9.8, 0);
-	float dragCoef = -0.1;
-	for (auto it = particles->begin(); it != particles->end(); it++)
+	if (isFire == 0)
 	{
-		// Gravity
-		Vec3f drag = prod(it->velocity, it->velocity) * dragCoef;
-		// update acceleration 
-		it->acceleration = drag / it->mass + g;
+		list<Particle>* particles = bakedParticles[index];
+		Vec3f g(1, 1, 1);
+		if (isMirror == 1)
+		{
+			g = Vec3f(0, -9.8, 0);
+		}
+		else {
+			g = Vec3f(0, 9.8, 0);
+		}
+		float dragCoef = -0.1;
+		for (auto it = particles->begin(); it != particles->end(); it++)
+		{
+			// Gravity
+			Vec3f drag = prod(it->velocity, it->velocity) * dragCoef;
+			// update acceleration 
+			it->acceleration = drag / it->mass + g;
+		}
 	}
 }
 
 
 /** Render particles */
-void ParticleSystem::drawParticles(float t)
+void ParticleSystem::drawParticles(float t, int isM, GLint texName)
 {
 	if (t < bake_start_time || bake_start_time <= bake_end_time && t > bake_end_time) return;
+	isMirror = isM;
 	bakeParticles(t);
+	
+	/*
+	Mat4f mvm = getModelViewMatrix();
+	Vec3f forward(mvm[2][0], mvm[2][1], mvm[2][2]);
+	Vec3f right(mvm[0][0], mvm[0][1], mvm[0][2]);
+	Vec3f up(mvm[1][0], mvm[1][1], mvm[1][2]);
+	*/
+	glPushMatrix();
+		GLfloat modelview[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX, modelview);
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++) {
+				if (i == j)
+					modelview[i * 4 + j] = 1.0;
+				else
+					modelview[i * 4 + j] = 0.0;
+			}
+		}
+		/*
+		glLoadMatrixf(modelview);
+		glTranslatef(1, 1, 1);
+		setDiffuseColor(0.2, 0.2, 0.7);
+		drawBox(0.5, 0.5, 0.5);
+		*/
+	glPopMatrix();
+	
 
 	int frameNum = (t - bake_start_time) * bake_fps;
 	// printf("frame number is %d\n", frameNum);
@@ -123,16 +175,38 @@ void ParticleSystem::drawParticles(float t)
 	for (auto it = particles->begin(); it != particles->end(); it++)
 	{
 		glPushMatrix();
-		glTranslatef(it->position[0], it->position[1], it->position[2]);
-		glScalef(it->sizes[0], it->sizes[1], it->sizes[2]);
 		setDiffuseColor(1.0f, 1.0f, 0.5f);
+		if (isFire == 1)
+		{
+			it->sizes[0] = 0.1 * it->lifetime / 20;
+			it->sizes[1] = 0.1 * it->lifetime / 20;
+			it->sizes[2] = 0.1 * it->lifetime / 20;
+			glLoadMatrixf(modelview);
+			setDiffuseColor(1.0f, 0.0f, 0.0f);
+		}
+		glTranslatef(it->position[0], it->position[1], it->position[2]);
+		
+		glScalef(it->sizes[0], it->sizes[1], it->sizes[2]);
+		
+		
 		switch (it->type)
 		{
 		case BOX:
-			drawBox(1, 1, 1);
+			if (isFire == 0)
+				drawBox(1, 1, 1);
+			else
+			{
+				glEnable(GL_TEXTURE_2D);
+				glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+				glBindTexture(GL_TEXTURE_2D, texName);
+				drawTextureBox(1, 1, 1);
+				glFlush();
+				glDisable(GL_TEXTURE_2D);
+			}
 			break;
 		case BALL:
 			drawSphere(0.5);
+			break;
 		default:
 			break;
 		}
@@ -171,7 +245,7 @@ void ParticleSystem::bakeParticles(float t)
 		{
 			for (int j = 0; j < 10; ++j)
 			{
-				newParticles->push_back(spawnParticle(Vec4f(0.1 * j, 0.9, 0, 1)));
+				newParticles->push_back(spawnParticle(Vec4f(0.1 * j, -3.2, 0, 1)));
 			}
 		}
 		bakedParticles[0] = newParticles;
@@ -199,7 +273,7 @@ void ParticleSystem::bakeParticles(float t)
 	{
 		for (int j = 0; j < 10; ++j)
 		{
-			tmp->push_back(spawnParticle(Vec4f(0.1 * j, 0.9, 0, 1)));
+			tmp->push_back(spawnParticle(Vec4f(0.1 * j, -3.2, 0, 1)));
 		}
 	}
 
@@ -230,8 +304,28 @@ Particle ParticleSystem::spawnParticle(Vec4f position)
 	Vec3f size(particleSize[0], particleSize[1], particleSize[2]);
 	uniform_real_distribution<double> urd(-0.5, 0.5);
 	// Vec4f pos(0.5, 0.9, 0, 1);
-	position = WorldMatrix * position;
-	// Vec3f v2(urd(*re), urd(*re), urd(*re) + 1);
-	Vec3f v2(urd(*re) * 5, urd(*re), urd(*re));
-	return Particle(t, 1, particleLife, particleSize, Vec3f(position[0], position[1], position[2]), v2, Vec3f(0, 0, 0));
+	if (isFire == 0)
+	{
+		position = WorldMatrix * position;
+		// Vec3f v2(urd(*re), urd(*re), urd(*re) + 1);
+		Vec3f v2(urd(*re) * 5, urd(*re), urd(*re));
+		return Particle(t, 1, particleLife, particleSize, Vec3f(position[0], position[1], position[2]), v2, Vec3f(0, 0, 0));
+	}
+	else
+	{
+		// position = WorldMatrix * Vec4f(2, -1.2, 2, 1);
+		uniform_real_distribution<double> urd_angle(0, 6.283);
+		double speed = (urd(*re) + 0.5);
+		Vec3f v2(speed * cos(urd_angle(*re)), urd(*re) + 0.5, speed * sin(urd_angle(*re)));
+		int lifetime_fire = (int)(particleLife * speed);
+		Vec3f g(1, 1, 1);
+		if (isMirror == 1)
+		{
+			g = Vec3f(0, 9.8, 0);
+		}
+		else {
+			g = Vec3f(0, -9.8, 0);
+		}
+		return Particle(t, 0.01, lifetime_fire, particleSize * 2, Vec3f(3, -1.5, 4) + Vec3f(urd(*re), (urd(*re)-0.5)/2, urd(*re)), v2, g);
+	}
 }

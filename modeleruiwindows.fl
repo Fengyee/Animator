@@ -163,6 +163,10 @@ class ModelerUIWindows {open
                 label {C2-Interpolating}
                 xywh {0 0 100 20} labelsize 12
               }
+			  menuitem {} {
+                label SubDivision
+                xywh {0 0 100 20} labelsize 12
+              }
             }
             Fl_Light_Button m_pbtWrap {
               label Wrap
@@ -178,6 +182,16 @@ class ModelerUIWindows {open
               label Tension
               user_data this selected
               xywh {165 490 250 25} minimum 0.1 maximum 5 step 0.1 value 0.5
+            }
+			Fl_Input averageMask {
+              label {AverageMask:}
+              user_data this
+              xywh {230 570 185 25} labelsize 10 textsize 10
+            }
+			Fl_Value_Slider m_pDepthSlider {
+              label {Depth:}
+              user_data this
+              xywh {230 545 185 20} type Horizontal labelsize 12 align 4 maximum 10 step 1 value 1
             }
           }
         }
