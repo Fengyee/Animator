@@ -7,10 +7,10 @@ Point CatmullCurveEvaluator::calculateCatmull(float t, const Point& p1, const Po
 {
 	Vec4f Bx(p1.x, p2.x, p3.x, p4.x);
 	Vec4f By(p1.y, p2.y, p3.y, p4.y);
-	Vec4f Mb[4] = { Vec4f(1, 4, 1, 0),
-		Vec4f(tension/3.0, 2, tension/3.0, 0),
-		Vec4f(0, tension / 3.0, 2, tension / 3.0),
-		Vec4f(0, 0, 2, 0) };
+	Vec4f Mb[4] = { Vec4f(0, 1, 0, 0),
+		Vec4f(-1 * tension / 3.0, 1, tension / 3.0, 0),
+		Vec4f(0, tension / 3.0, 1, -1 * tension / 3.0),
+		Vec4f(0, 0, 1, 0) };
 	Vec4f Gx(Mb[0] * Bx, Mb[1] * Bx, Mb[2] * Bx, Mb[3] * Bx);
 	Vec4f Gy(Mb[0] * By, Mb[1] * By, Mb[2] * By, Mb[3] * By);
 	Point result;
@@ -22,32 +22,18 @@ Point CatmullCurveEvaluator::calculateCatmull(float t, const Point& p1, const Po
 	result.x = Vec4f(T*M[0], T*M[1], T*M[2], T*M[3])*Gx;
 	result.y = Vec4f(T*M[0], T*M[1], T*M[2], T*M[3])*Gy;
 	return result;
-	/*
-	Point result;
-	Vec4f T(t*t*t, t*t, t, 1);
-	Vec4f M[4] = { Vec4f(-1, 3, -3, 1),
-		Vec4f(2, -5, 4, -1),
-		Vec4f(-1, 0, 1, 0),
-		Vec4f(0, 2, 0, 0) };
-	Vec4f Gx(p1.x, p2.x, p3.x, p4.x);
-	Vec4f Gy(p1.y, p2.y, p3.y, p4.y);
-	result.x = T * Vec4f(M[0] * Gx / 2, M[1] * Gx / 2, M[2] * Gx / 2, M[3] * Gx / 2);
-	result.y = T * Vec4f(M[0] * Gy / 2, M[1] * Gy / 2, M[2] * Gy / 2, M[3] * Gy / 2);
-	//result.x = Vec4f(T*M[0]/2, T*M[1]/2, T*M[2]/2, T*M[3]/2)*Gx;
-	//result.y = Vec4f(T*M[0]/2, T*M[1]/2, T*M[2]/2, T*M[3]/2)*Gy;
-	*/
-	return result;
+
 }
 
 void CatmullCurveEvaluator::evaluateCurve(const std::vector<Point>& ptvCtrlPts,
 	std::vector<Point>& ptvEvaluatedCurvePts,
 	const float& fAniLength,
-	const bool& bWrap) const
+	const bool& bWrap, float m_fTension) const
 {
 	int iCtrlPtCount = ptvCtrlPts.size();
 	ptvEvaluatedCurvePts.clear();
 	float prev_eval_x = 0.0;
-	float tension = 0.5;
+	float tension = m_fTension;
 
 	if (bWrap) {
 		for (int i = 0; i < iCtrlPtCount; i++)

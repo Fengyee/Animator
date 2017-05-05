@@ -49,7 +49,7 @@ Fl_Menu_Item ModelerUIWindows::menu_m_pchoCurveType[] = {
 
 ModelerUIWindows::ModelerUIWindows() {
   Fl_Window* w;
-  { Fl_Window* o = m_pwndMainWnd = new Fl_Window(589, 705, "CSE 341 Animator (Sp02)");
+  { Fl_Window* o = m_pwndMainWnd = new Fl_Window(589, 705, "CS 341 Animator (Sp02)");
     w = o;
     o->color(185);
     o->labeltype(FL_NORMAL_LABEL);
@@ -80,6 +80,13 @@ ModelerUIWindows::ModelerUIWindows() {
         { Fl_Pack* o = m_ppckPack = new Fl_Pack(155, 50, 290, 490);
           o->end();
           Fl_Group::current()->resizable(o);
+        }
+        { Fl_Value_Slider* o = m_fTension = new Fl_Value_Slider(165, 490, 250, 25, "Tension");
+          o->minimum(0.1);
+          o->maximum(5);
+          o->step(0.1);
+          o->value(0.5);
+          o->user_data((void*)(this));
         }
         o->end();
         Fl_Group::current()->resizable(o);

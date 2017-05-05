@@ -10,10 +10,10 @@ class ModelerUIWindows {open
   Function {ModelerUIWindows()} {open
   } {
     Fl_Window m_pwndMainWnd {
-      label {CS 341 Animator (Sp02)}
-      xywh {47 31 589 705} color 185 labeltype NORMAL_LABEL when 0 visible
+      label {CS 341 Animator (Sp02)} open
+      xywh {213 80 589 705} color 185 labeltype NORMAL_LABEL when 0 visible
     } {
-      Fl_Menu_Bar m_pmbMenuBar {selected
+      Fl_Menu_Bar m_pmbMenuBar {open
         xywh {0 0 590 25} selection_color 137 labelsize 12 textsize 12
       } {
         submenu {} {
@@ -89,18 +89,19 @@ class ModelerUIWindows {open
         xywh {5 55 145 440} type Multi selection_color 29 labeltype NO_LABEL textsize 10
       }
       Fl_Tabs m_ptabTab {
-        user_data this
+        user_data this open
         xywh {155 30 430 510} color 185 align 0
       } {
         Fl_Scroll m_pscrlScroll {
           label Modeler open
           xywh {155 50 430 490} type VERTICAL_ALWAYS labelsize 12 when 1 hide resizable
         } {
-          Fl_Pack m_ppckPack {
+          Fl_Pack m_ppckPack {open
             xywh {155 50 290 490} resizable
             code0 {\#include "FL/Fl_Box.h"}
             code1 {\#include "FL/Fl_Value_Slider.h"}
           } {}
+
         }
         Fl_Group m_pgrpCurveGroup {
           label Curves
@@ -173,15 +174,20 @@ class ModelerUIWindows {open
               user_data this
               xywh {505 470 75 20} labelsize 12
             }
+			Fl_Value_Slider m_fTension {
+              label Tension
+              user_data this selected
+              xywh {165 490 250 25} minimum 0.1 maximum 5 step 0.1 value 0.5
+            }
           }
         }
       }
       Fl_Group {} {
-        label {Animation Controls}
+        label {Animation Controls} open
         xywh {5 510 580 190} labeltype NO_LABEL
       } {
         Fl_Group {} {
-          label Playback
+          label Playback open
           xywh {95 550 490 150} labeltype NO_LABEL resizable
         } {
           Fl_Group {} {
@@ -311,7 +317,7 @@ class ModelerUIWindows {open
       }
     }
     Fl_Window m_pwndModelerWnd {
-      label Model
+      label Model open
       xywh {481 95 340 296} when 0 hide resizable
     } {
       Fl_Box m_pwndModelerView {

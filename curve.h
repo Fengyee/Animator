@@ -44,7 +44,7 @@ public:
 
 	void wrap(bool bWrap);
 	bool wrap() const;
-	bool tension() const;
+	void tension(float mfTension);
 	void drawEvaluatedCurveSegments(void) const;
 	void drawControlPoints(void) const;
 	void drawControlPoint(int iCtrlPt) const;
@@ -53,7 +53,7 @@ public:
 
 	void toStream(std::ostream& output_stream) const;
 	void fromStream(std::istream& input_stream);
-
+	float m_fTension;
 protected:
 	void init(const float fStartYValue = 0.0f);
 	void reevaluate(void) const;
@@ -68,9 +68,10 @@ protected:
 
 	float m_fMaxX;
 	bool m_bWrap;
+
 	static float s_fCtrlPtXEpsilon;
 
-	float m_fTension;
+	
 };
 
 std::ostream& operator<<(std::ostream& output_stream, const Curve& curve_data);

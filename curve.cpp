@@ -109,15 +109,17 @@ void Curve::wrap(bool bWrap)
 	m_bDirty = true;
 }
 
+void Curve::tension(float mfTension)
+{
+	m_fTension = mfTension;
+	m_bDirty = true;
+}
+
 bool Curve::wrap() const
 {
 	return m_bWrap;
 }
 
-bool Curve::tension() const
-{
-	return m_fTension;
-}
 
 float Curve::evaluateCurveAt(const float x) const
 {
@@ -425,8 +427,7 @@ void Curve::reevaluate() const
 			m_pceEvaluator->evaluateCurve(m_ptvCtrlPts, 
 				m_ptvEvaluatedCurvePts, 
 				m_fMaxX, 
-				m_bWrap);
-
+				m_bWrap, m_fTension);
 			std::sort(m_ptvEvaluatedCurvePts.begin(),
 				m_ptvEvaluatedCurvePts.end(),
 				PointSmallerXCompare());

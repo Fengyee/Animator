@@ -383,6 +383,19 @@ void ModelerUI::cb_wrap(Fl_Light_Button* o, void* v)
 	((ModelerUI*)(o->user_data()))->cb_wrap_i(o,v);
 }
 
+
+////added
+inline void ModelerUI::cb_tensionSlider_i(Fl_Value_Slider* o, void* v)
+{
+	float tension = m_fTension->value();
+	m_pwndGraphWidget->currCurveTension(tension);
+	m_pwndGraphWidget->redraw();
+}
+void ModelerUI::cb_tensionSlider(Fl_Value_Slider* o, void* v)
+{
+	((ModelerUI*)(o->user_data()))->cb_tensionSlider_i(o, v);
+}
+
 inline void ModelerUI::cb_indicatorWnd_i(IndicatorWindow*, void*) 
 {
 	currTime(m_pwndIndicatorWnd->floatingIndicator());
@@ -550,6 +563,7 @@ void ModelerUI::cb_simulate(Fl_Light_Button* o, void* v)
 	((ModelerUI*)(o->user_data()))->cb_simulate_i(o,v);
 }
 
+
 void ModelerUI::cb_timed(void *p)
 {
 	ModelerUI* pui = (ModelerUI*)p;
@@ -622,6 +636,7 @@ void ModelerUI::activeCurvesChanged()
 		m_pbtWrap->deactivate();
 	}
 }
+
 
 void ModelerUI::currTime(float fTime) 
 {
@@ -908,6 +923,8 @@ m_bSaveMovie(false)
 	m_pbtLoop->callback((Fl_Callback*)cb_loop);
 	m_pbtSimulate->callback((Fl_Callback*)cb_simulate);
 	m_psldrFPS->callback((Fl_Callback*)cb_fps);
+
+	m_fTension->callback((Fl_Callback*)cb_tensionSlider);
 
 	m_pwndMainWnd->callback((Fl_Callback*)cb_hide);
 	m_pwndMainWnd->when(FL_HIDE);
