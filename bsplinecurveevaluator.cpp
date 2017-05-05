@@ -27,7 +27,7 @@ Point BsplineCurveEvaluator::calculateBspline(float t, const Point& p1, const Po
 void BsplineCurveEvaluator::evaluateCurve(const std::vector<Point>& ptvCtrlPts,
 	std::vector<Point>& ptvEvaluatedCurvePts,
 	const float& fAniLength,
-	const bool& bWrap) const
+	const bool& bWrap, float m_fTension) const
 {
 	int iCtrlPtCount = ptvCtrlPts.size();
 	ptvEvaluatedCurvePts.clear();

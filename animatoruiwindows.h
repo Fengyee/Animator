@@ -11,6 +11,7 @@
 #include <FL/Fl_Pack.H>
 #include "FL/Fl_Box.h"
 #include "FL/Fl_Value_Slider.h"
+#include <FL/Fl_Value_Slider.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Box.H>
 #include "rulerwindow.h"
@@ -18,7 +19,6 @@
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Light_Button.H>
 #include <FL/Fl_Button.H>
-#include <FL/Fl_Value_Slider.H>
 #include "indicatorwindow.h"
 #include <FL/Fl_Slider.H>
 #include <FL/Fl_Output.H>
@@ -47,6 +47,7 @@ public:
   Fl_Tabs *m_ptabTab;
   Fl_Scroll *m_pscrlScroll;
   Fl_Pack *m_ppckPack;
+  Fl_Value_Slider *m_fTension;
   Fl_Group *m_pgrpCurveGroup;
   RulerWindow *m_pwndHRuler;
   RulerWindow *m_pwndVRuler;
