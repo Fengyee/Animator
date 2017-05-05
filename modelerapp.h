@@ -55,6 +55,8 @@ public:
 	// Get and set particle system
 	ParticleSystem *GetParticleSystem();
 	void SetParticleSystem(ParticleSystem *s);
+	ParticleSystem *GetFire();
+	void SetFire(ParticleSystem *s);
 
 	// Return the current time
 	float GetTime();
@@ -64,6 +66,9 @@ public:
 
 	// Returns animating flag
 	bool Animating();
+
+
+	static ModelerUI* getPUI();
 
 private:
 	// Private for singleton
@@ -85,6 +90,7 @@ private:
 
 	// Particle System variables
 	ParticleSystem *ps;
+	ParticleSystem *fire;
 };
 
 #endif

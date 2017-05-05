@@ -27,6 +27,7 @@ class ParticleSystem {
 public:
 	/** Constructor **/
 	ParticleSystem(ParticleType type, int life, const Vec3f& size, float bakefps, int speed);
+	ParticleSystem(ParticleType type, int life, const Vec3f& size, float bakefps, int speed, int iF);
 
 	/** Destructor **/
 	virtual ~ParticleSystem();
@@ -34,7 +35,7 @@ public:
 	/** Simulation fxns **/
 	// This fxn should render all particles in the system,
 	// at current time t.
-	virtual void drawParticles(float t);
+	virtual void drawParticles(float t, int isMirror, GLint texName);
 
 	// This fxn should save the configuration of all particles
 	// at current time t.
@@ -78,6 +79,8 @@ protected:
 										// updating the grey indicator 
 	float bake_end_time;				// time at which baking ended
 
+	int isMirror;
+	int isFire;
 	/** General state variables **/
 	bool simulate;						// flag for simulation mode
 	bool dirty;							// flag for updating ui (don't worry about this)

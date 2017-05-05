@@ -45,6 +45,7 @@ void ModelerControl::SetVals(const char* name, float minimum, float maximum, flo
 }
 
 
+
 // ****************************************************************************
 
 
@@ -58,6 +59,12 @@ ModelerApplication* ModelerApplication::Instance()
 	// Make a new instance if none exists, otherwise, return
 	// the existing instance of the ModelerApplication
 	return (m_instance) ? (m_instance) : (m_instance = new ModelerApplication());
+}
+
+
+ModelerUI* ModelerApplication::getPUI()
+{
+	return ModelerApplication::Instance()->m_ui;
 }
 
 void ModelerApplication::Init(ModelerViewCreator_f createView, 
@@ -140,6 +147,15 @@ void ModelerApplication::SetParticleSystem(ParticleSystem *s)
 {
 	ps = s;
 }
+ParticleSystem *ModelerApplication::GetFire() 
+{
+	return fire;
+}
+
+void ModelerApplication::SetFire(ParticleSystem *s)
+{
+	fire = s;
+}
 
 float ModelerApplication::GetTime()
 {
@@ -190,6 +206,37 @@ void ModelerApplication::ValueChangedCallback()
 			else if (m_ui->simulate()) {
 				ps->startSimulation(currTime);
 			} else {
+				ps->stopSimulation(currTime);
+			}
+		}
+		ps->setDirty(false);
+	}
+
+	ps = m_app->GetFire();
+
+	if (ps != NULL) {
+		bool simulating = ps->isSimulate();
+
+		// stop simulation if we're at endTime
+		double TIME_EPSILON = 0.05;
+		if (simulating && (currTime >= (playEndTime - TIME_EPSILON))) {
+			ps->stopSimulation(currTime);
+		}
+
+		// check to see if we're simulating still
+		simulating = ps->isSimulate();
+		if (simulating != m_ui->simulate()) {
+			// if the psystem is dirty,
+			// we need to sync to it
+			if (ps->isDirty()) {
+				m_ui->simulate(simulating == true);
+			}
+			// otherwise, we sync the psystem
+			// to the ui
+			else if (m_ui->simulate()) {
+				ps->startSimulation(currTime);
+			}
+			else {
 				ps->stopSimulation(currTime);
 			}
 		}
