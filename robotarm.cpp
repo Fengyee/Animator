@@ -12,8 +12,10 @@
 #include "modelerapp.h"
 #include "modelerdraw.h"
 #include "particleSystem.h"
+#include "modelerui.h"
 #include "mat.h"
 #include "camera.h"
+#include "bitmap.h"
 
 #include <stdlib.h>
 
@@ -84,7 +86,35 @@ void drawParticles(float t, int isMirror) {
 	ParticleSystem* ps = ModelerApplication::Instance()->GetParticleSystem();
 	if (ps != NULL)
 	{
-		ps->drawParticles(t, isMirror);
+		ps->drawParticles(t, isMirror, 0);
+	}
+	// printf("current world point: %f, %f, %f, %f\n", WorldPoint[0], WorldPoint[1], WorldPoint[2], WorldPoint[3]);
+	glPopMatrix();
+}
+
+void drawFire(float t, int isMirror, GLint texName) {
+	// WorldMatrix = CameraMatrix.inverse() * getModelViewMatrix();
+	/*{
+	glPushMatrix();
+	Vec4f worldpoint = WorldMatrix * Vec4f(0, 0, 0, 1);
+	glTranslatef(worldpoint[0], worldpoint[1], worldpoint[2]);
+	setDiffuseColor(COLOR_YELLOW);
+	drawSphere(0.3);
+	glPopMatrix();
+	}
+	{
+	glPushMatrix();
+	setDiffuseColor(COLOR_GREEN);
+	drawSphere(0.3);
+	glPopMatrix();
+	}*/
+	glPushMatrix();
+	// Draw particles
+	// glTranslatef(WorldPoint[0], WorldPoint[1], WorldPoint[2]);
+	ParticleSystem* fire = ModelerApplication::Instance()->GetFire();
+	if (fire != NULL)
+	{
+		fire->drawParticles(t, isMirror, texName);
 	}
 	// printf("current world point: %f, %f, %f, %f\n", WorldPoint[0], WorldPoint[1], WorldPoint[2], WorldPoint[3]);
 	glPopMatrix();
@@ -118,23 +148,73 @@ enum RobotArmControls
 	NUMCONTROLS,
 };
 
-// LSYSTEM_TYPE, LSYSTEM_ITER, LS_LENGTH,
-void ground(float h);
-void base(float h);
-void rotation_base(float h);
-void lower_arm(float h);
-void upper_arm(float h);
-void claw(float h);
-void y_box(float h);
 
 // To make a RobotArm, we inherit off of ModelerView
 class RobotArm : public ModelerView 
 {
 public:
     RobotArm(int x, int y, int w, int h, char *label) 
-        : ModelerView(x,y,w,h,label) {}
+        : ModelerView(x,y,w,h,label), textureImage(NULL) {}
+	GLuint texName;
+	unsigned char* textureImage;
+	int tex_height;
+	int tex_width;
+
+	void createTexture(int _width);
     virtual void draw();
 };
+
+void RobotArm::createTexture(int _width)
+{
+	static int width = 0;
+	static int height = 0;
+
+	if (textureImage == NULL)
+	{
+		unsigned char *image;
+		const char* filename = "C:\\Users\\feng8\\Documents\\GitHub\\Animator\\fire.bmp";
+		
+		if ((image = readBMP(filename, width, height)) == NULL)
+		{
+			fl_alert("Can't load bitmap file...");
+			// ModelerApplication::Instance()->SetControlValue(DRAW_TEXTURE, 0);
+			return;
+		}
+		// printf("height and width is: %d, %d\n", height, width);
+		textureImage = image;
+		glClearColor(0.0, 0.0, 0.0, 0.0);
+		glShadeModel(GL_FLAT);
+		glEnable(GL_DEPTH_TEST);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glGenTextures(1, &texName);
+		glBindTexture(GL_TEXTURE_2D, texName);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureImage);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	/* 
+	if (_width <= 0) _width = width;
+	if (width > 0 && height > 0)
+	{
+		double hwfactor = height / (double)width;
+		glEnable(GL_TEXTURE_2D);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+		glBindTexture(GL_TEXTURE_2D, texName);
+		glBegin(GL_QUADS);
+		glTexCoord2f(0.0, 0.0); glVertex3f(0.0, 0.0, 0.0);
+		glTexCoord2f(0.0, 1.0); glVertex3f(0.0, _width * hwfactor, 0.0);
+		glTexCoord2f(1.0, 1.0); glVertex3f(_width, _width * hwfactor, 0.0);
+		glTexCoord2f(1.0, 0.0); glVertex3f(_width, 0.0, 0.0);
+		glEnd();
+		glFlush();
+		glDisable(GL_TEXTURE_2D);
+	}
+	*/
+}
 
 // We need to make a creator function, mostly because of
 // nasty API stuff that we'd rather stay away from.
@@ -155,7 +235,7 @@ ModelerView* createRobotArm(int x, int y, int w, int h, char *label)
 // method of ModelerView to draw out RobotArm
 void RobotArm::draw()
 {
-
+	createTexture(5);
     // This call takes care of a lot of the nasty projection 
     // matrix stuff
     ModelerView::draw(); 
@@ -944,7 +1024,8 @@ drawModel:
 		*/
 		glPopMatrix();
 
-		drawParticles(t, isMirror);
+		// drawParticles(t, isMirror);
+		drawFire(t, isMirror, texName);
 	}
 	glPopMatrix();
 	if (isMirror == 1)
@@ -970,159 +1051,6 @@ drawModel:
 	endDraw();
 }
 
-void ground(float h) 
-{
-	glDisable(GL_LIGHTING);
-	glColor3f(0.25,0.65,0.45);
-	glPushMatrix();
-	glScalef(30,0,30);
-	y_box(h);
-	glPopMatrix();
-	glEnable(GL_LIGHTING);
-}
-
-void base(float h) {
-	setDiffuseColor( 0.25, 0.25, 0.25 );
-	setAmbientColor( 0.25, 0.25, 0.25 );
-	glPushMatrix();
-		glPushMatrix();
-			glTranslatef(1.0, h / 2.0, 0.75);
-			drawCylinder(0.25, h / 2.0, h / 2.0);
-		glPopMatrix();
-		glPushMatrix();
-			glTranslatef(1.0, h / 2.0, -1.0);
-			drawCylinder(0.25, h / 2.0, h / 2.0);
-		glPopMatrix();
-		glPushMatrix();
-			glTranslatef(-1.0, h / 2.0, 0.75);
-			drawCylinder(0.25, h / 2.0, h / 2.0);
-		glPopMatrix();
-		glPushMatrix();
-			glTranslatef(-1.0, h / 2.0, -1.0);
-			drawCylinder(0.25, h / 2.0, h / 2.0);
-		glPopMatrix();
-	glScalef(4.0f, h, 4.0f);
-	y_box(1.0f);
-	glPopMatrix();
-}
-
-void rotation_base(float h) {
-	setDiffuseColor( 0.85, 0.75, 0.25 );
-	setAmbientColor( 0.95, 0.75, 0.25 );
-	glPushMatrix();
-		glPushMatrix();
-			glScalef(4.0, h, 4.0);
-			y_box(1.0f); // the rotation base
-		glPopMatrix();
-		setDiffuseColor( 0.15, 0.15, 0.65 );
-		setAmbientColor( 0.15, 0.15, 0.65 );
-		glPushMatrix();
-			glTranslatef(-0.5, h, -0.6);
-			glScalef(2.0, h, 1.6);
-			y_box(1.0f); // the console
-		glPopMatrix();
-		setDiffuseColor( 0.65, 0.65, 0.65 );
-		setAmbientColor( 0.65, 0.65, 0.65 );
-		glPushMatrix();
-			glTranslatef( 0.5, h, 0.6 );
-			glRotatef( -90.0, 1.0, 0.0, 0.0 );
-			drawCylinder( h, 0.05, 0.05 ); // the pipe
-		glPopMatrix();
-	glPopMatrix();
-}
-
-void lower_arm(float h) {					// draw the lower arm
-	setDiffuseColor( 0.85, 0.75, 0.25 );
-	setAmbientColor( 0.95, 0.75, 0.25 );
-	y_box(h);
-}
-
-void upper_arm(float h) {					// draw the upper arm
-	setDiffuseColor( 0.85, 0.75, 0.25 );
-	setAmbientColor( 0.95, 0.75, 0.25 );
-	glPushMatrix();
-	glScalef( 1.0, 1.0, 0.7 );
-	y_box(h);
-	glPopMatrix();
-}
-
-void claw(float h) {
-	setDiffuseColor( 0.25, 0.25, 0.85 );
-	setAmbientColor( 0.25, 0.25, 0.85 );
-
-	glBegin( GL_TRIANGLES );
-
-	glNormal3d( 0.0, 0.0, 1.0);		// +z side
-	glVertex3d( 0.5, 0.0, 0.5);
-	glVertex3d(-0.5, 0.0, 0.5);
-	glVertex3d( 0.5,   h, 0.5);
-
-	glNormal3d( 0.0, 0.0, -1.0);	// -z side
-	glVertex3d( 0.5, 0.0, -0.5);
-	glVertex3d(-0.5, 0.0, -0.5);
-	glVertex3d( 0.5,   h, -0.5);
-
-	glEnd();
-
-	glBegin( GL_QUADS );
-
-	glNormal3d( 1.0,  0.0,  0.0);	// +x side
-	glVertex3d( 0.5, 0.0,-0.5);
-	glVertex3d( 0.5, 0.0, 0.5);
-	glVertex3d( 0.5,   h, 0.5);
-	glVertex3d( 0.5,   h,-0.5);
-
-	glNormal3d( 0.0,-1.0, 0.0);		// -y side
-	glVertex3d( 0.5, 0.0, 0.5);
-	glVertex3d( 0.5, 0.0,-0.5);
-	glVertex3d(-0.5, 0.0,-0.5);
-	glVertex3d(-0.5, 0.0, 0.5);
-
-	glEnd();
-}
-
-void y_box(float h) {
-
-	glBegin( GL_QUADS );
-
-	glNormal3d( 1.0 ,0.0, 0.0);			// +x side
-	glVertex3d( 0.25,0.0, 0.25);
-	glVertex3d( 0.25,0.0,-0.25);
-	glVertex3d( 0.25,  h,-0.25);
-	glVertex3d( 0.25,  h, 0.25);
-
-	glNormal3d( 0.0 ,0.0, -1.0);		// -z side
-	glVertex3d( 0.25,0.0,-0.25);
-	glVertex3d(-0.25,0.0,-0.25);
-	glVertex3d(-0.25,  h,-0.25);
-	glVertex3d( 0.25,  h,-0.25);
-
-	glNormal3d(-1.0, 0.0, 0.0);			// -x side
-	glVertex3d(-0.25,0.0,-0.25);
-	glVertex3d(-0.25,0.0, 0.25);
-	glVertex3d(-0.25,  h, 0.25);
-	glVertex3d(-0.25,  h,-0.25);
-
-	glNormal3d( 0.0, 0.0, 1.0);			// +z side
-	glVertex3d(-0.25,0.0, 0.25);
-	glVertex3d( 0.25,0.0, 0.25);
-	glVertex3d( 0.25,  h, 0.25);
-	glVertex3d(-0.25,  h, 0.25);
-
-	glNormal3d( 0.0, 1.0, 0.0);			// top (+y)
-	glVertex3d( 0.25,  h, 0.25);
-	glVertex3d( 0.25,  h,-0.25);
-	glVertex3d(-0.25,  h,-0.25);
-	glVertex3d(-0.25,  h, 0.25);
-
-	glNormal3d( 0.0,-1.0, 0.0);			// bottom (-y)
-	glVertex3d( 0.25,0.0, 0.25);
-	glVertex3d(-0.25,0.0, 0.25);
-	glVertex3d(-0.25,0.0,-0.25);
-	glVertex3d( 0.25,0.0,-0.25);
-
-	glEnd();
-}
 
 int main()
 {
@@ -1204,8 +1132,10 @@ int main()
 	// to hook it up to the animator interface.
 
 	ParticleSystem *ps = new ParticleSystem(BALL, 20, Vec3f(0.05, 0.05, 0.05), 30.0, 5);
+	ParticleSystem *fire = new ParticleSystem(BALL, 20, Vec3f(0.05, 0.05, 0.05), 30.0, 5, 1);
 
 	ModelerApplication::Instance()->SetParticleSystem(ps);
+	ModelerApplication::Instance()->SetFire(fire);
 	ModelerApplication::Instance()->Init(&createRobotArm, controls, NUMCONTROLS);
 
     return ModelerApplication::Instance()->Run();

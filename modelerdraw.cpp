@@ -323,6 +323,82 @@ void drawBox( double x, double y, double z )
 void drawTextureBox( double x, double y, double z )
 {
     // NOT IMPLEMENTED, SORRY (ehsu)
+	int savemode;
+	glGetIntegerv(GL_MATRIX_MODE, &savemode);
+
+	/* switch to the model matrix and scale by x,y,z. */
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glScaled(x, y, z);
+
+	glBegin(GL_QUADS);
+
+	glNormal3d(0.0, 0.0, -1.0);
+	glTexCoord2f(0, 0);
+	glVertex3d(0.0, 0.0, 0.0); 
+	glTexCoord2f(0,1); 
+	glVertex3d(0.0, 1.0, 0.0);
+	glTexCoord2f(1, 1);
+	glVertex3d(1.0, 1.0, 0.0); 
+	glTexCoord2f(1, 0); 
+	glVertex3d(1.0, 0.0, 0.0);
+
+	glNormal3d(0.0, -1.0, 0.0);
+	glTexCoord2f(0, 0);
+	glVertex3d(0.0, 0.0, 0.0); 
+	glTexCoord2f(0, 1); 
+	glVertex3d(1.0, 0.0, 0.0);
+	glTexCoord2f(1, 1);
+	glVertex3d(1.0, 0.0, 1.0); 
+	glTexCoord2f(1, 0); 
+	glVertex3d(0.0, 0.0, 1.0);
+
+	glNormal3d(-1.0, 0.0, 0.0);
+	glTexCoord2f(0, 0);
+	glVertex3d(0.0, 0.0, 0.0); 
+	glTexCoord2f(0, 1);
+	glVertex3d(0.0, 0.0, 1.0);
+	glTexCoord2f(1, 1);
+	glVertex3d(0.0, 1.0, 1.0); 
+	glTexCoord2f(1, 0); 
+	glVertex3d(0.0, 1.0, 0.0);
+
+	glNormal3d(0.0, 0.0, 1.0);
+	glTexCoord2f(0, 0);
+	glVertex3d(0.0, 0.0, 1.0); 
+	glTexCoord2f(0, 1);
+	glVertex3d(1.0, 0.0, 1.0);
+	glTexCoord2f(1, 1); 
+	glVertex3d(1.0, 1.0, 1.0); 
+	glTexCoord2f(1, 0); 
+	glVertex3d(0.0, 1.0, 1.0);
+
+	glNormal3d(0.0, 1.0, 0.0);
+	glTexCoord2f(0, 0);
+	glVertex3d(0.0, 1.0, 0.0); 
+	glTexCoord2f(0, 1); 
+	glVertex3d(0.0, 1.0, 1.0);
+	glTexCoord2f(1, 1);
+	glVertex3d(1.0, 1.0, 1.0);
+	glTexCoord2f(1, 0); 
+	glVertex3d(1.0, 1.0, 0.0);
+
+	glNormal3d(1.0, 0.0, 0.0);
+	glTexCoord2f(0, 0);
+	glVertex3d(1.0, 0.0, 0.0); 
+	glTexCoord2f(0, 1); 
+	glVertex3d(1.0, 1.0, 0.0);
+	glTexCoord2f(1, 1); 
+	glVertex3d(1.0, 1.0, 1.0); 
+	glTexCoord2f(1, 0); 
+	glVertex3d(1.0, 0.0, 1.0);
+
+	glEnd();
+
+	/* restore the model matrix stack, and switch back to the matrix
+	mode we were in. */
+	glPopMatrix();
+	glMatrixMode(savemode);
 }
 
 void drawCylinder( double h, double r1, double r2 )

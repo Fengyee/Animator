@@ -55,6 +55,8 @@ public:
 	// Get and set particle system
 	ParticleSystem *GetParticleSystem();
 	void SetParticleSystem(ParticleSystem *s);
+	ParticleSystem *GetFire();
+	void SetFire(ParticleSystem *s);
 
 	// Return the current time
 	float GetTime();
@@ -85,6 +87,7 @@ private:
 
 	// Particle System variables
 	ParticleSystem *ps;
+	ParticleSystem *fire;
 };
 
 #endif
