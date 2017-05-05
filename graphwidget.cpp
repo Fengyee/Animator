@@ -851,6 +851,13 @@ void GraphWidget::currCurveWrap(bool bWrap)
 	}
 }
 
+void GraphWidget::currCurveFreeze(bool bFreeze)
+{
+	if (m_iCurrCurve >= 0) {
+		m_pcrvvCurves[m_iCurrCurve]->freeze(bFreeze);
+	}
+}
+
 void GraphWidget::currCurveTension(float tension)
 {
 	if (m_iCurrCurve >= 0) {

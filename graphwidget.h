@@ -100,6 +100,7 @@ public:
 	// -1: invalid, 0: not wrapped, 1: wrapped
 	int currCurveWrap() const;
 	void currCurveWrap(bool bWrap);
+	void currCurveFreeze(bool bFreeze);
 	void invalidateAllCurves();
 	void currCurveTension(float tension);
 	// note that this value is evaluated lazily (it's only updated

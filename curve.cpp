@@ -20,6 +20,7 @@ float Curve::s_fCtrlPtXEpsilon = 0.0001f;
 Curve::Curve() :
 	m_pceEvaluator(NULL),
 	m_bWrap(false),
+	m_bFreeze(false),
 	m_fTension(0.5),
 	m_bDirty(true),
 	m_fMaxX(1.0f)
@@ -30,6 +31,7 @@ Curve::Curve() :
 Curve::Curve(const float fMaxX, const Point& point) :
 	m_pceEvaluator(NULL),
 	m_bWrap(false),
+	m_bFreeze(false),
 	m_fTension(0.5),
 	m_bDirty(true),
 	m_fMaxX(fMaxX)
@@ -40,6 +42,7 @@ Curve::Curve(const float fMaxX, const Point& point) :
 Curve::Curve(const float fMaxX, const float fStartYValue) :
 	m_pceEvaluator(NULL),
 	m_bWrap(false),
+	m_bFreeze(false),
 	m_fTension(0.5),
 	m_bDirty(true),
 	m_fMaxX(fMaxX)
@@ -107,6 +110,16 @@ void Curve::wrap(bool bWrap)
 {
 	m_bWrap = bWrap;
 	m_bDirty = true;
+}
+
+void Curve::freeze(bool bFreeze)
+{
+	m_bFreeze = bFreeze;
+	if (!m_bFreeze) {
+		mergeCtrlPts();
+		m_bDirty = true;
+	}
+	
 }
 
 void Curve::tension(float mfTension)
@@ -188,11 +201,22 @@ void Curve::scaleX(const float fScale)
 
 void Curve::addControlPoint(const Point& point)
 {
-	m_ptvCtrlPts.push_back(point);
+	if (m_bFreeze == false)
+		m_ptvCtrlPts.push_back(point);
+	else
+		m_ptvCtrlPtsFreeze.push_back(point);
 	sortControlPoints();
 	m_bDirty = true;
 }
-
+void Curve::mergeCtrlPts()
+{
+	for (int i = 0; i < m_ptvCtrlPtsFreeze.size(); i++) {
+		m_ptvCtrlPts.push_back(m_ptvCtrlPtsFreeze[i]);
+	}
+	m_ptvCtrlPtsFreeze.clear();
+	sortControlPoints();
+	m_bDirty = true;
+}
 void Curve::removeControlPoint(const int iCtrlPt)
 {
 	if (iCtrlPt < m_ptvCtrlPts.size() && m_ptvCtrlPts.size() > 2) {
@@ -405,6 +429,11 @@ void Curve::drawControlPoints() const
 	glBegin(GL_POINTS);
 		for (std::vector<Point>::const_iterator kit = m_ptvCtrlPts.begin(); 
 			kit != m_ptvCtrlPts.end(); 
+			++kit) {
+			glVertex2f(kit->x, kit->y);
+		}
+		for (std::vector<Point>::const_iterator kit = m_ptvCtrlPtsFreeze.begin();
+		kit != m_ptvCtrlPtsFreeze.end();
 			++kit) {
 			glVertex2f(kit->x, kit->y);
 		}
