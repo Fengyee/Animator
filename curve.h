@@ -44,7 +44,9 @@ public:
 
 	void wrap(bool bWrap);
 	bool wrap() const;
+	void freeze(bool bFreeze);
 	void tension(float mfTension);
+	void showInner(float bInner);
 	void drawEvaluatedCurveSegments(void) const;
 	void drawControlPoints(void) const;
 	void drawControlPoint(int iCtrlPt) const;
@@ -54,6 +56,8 @@ public:
 	void toStream(std::ostream& output_stream) const;
 	void fromStream(std::istream& input_stream);
 	float m_fTension;
+
+	void mergeCtrlPts();
 protected:
 	void init(const float fStartYValue = 0.0f);
 	void reevaluate(void) const;
@@ -64,10 +68,14 @@ protected:
 
 	mutable std::vector<Point> m_ptvCtrlPts;
 	mutable std::vector<Point> m_ptvEvaluatedCurvePts;
+	mutable std::vector<Point> m_ptvCtrlPtsFreeze;
+	mutable std::vector<Point> m_ptvCtrlPtsInner;
 	mutable bool m_bDirty;
 
 	float m_fMaxX;
 	bool m_bWrap;
+	bool m_bFreeze;
+	bool m_bInner;
 
 	static float s_fCtrlPtXEpsilon;
 

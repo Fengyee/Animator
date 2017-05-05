@@ -14,7 +14,8 @@ public:
 	virtual void evaluateCurve(const std::vector<Point>& control_points, 
 							   std::vector<Point>& evaluated_curve_points, 
 							   const float& animation_length, 
-							   const bool& wrap_control_points, float m_fTension) const = 0;
+							   const bool& wrap_control_points, float m_fTension, bool m_bInner, std::vector<Point>& m_ptvCtrlPtsInner) const = 0;
+	
 	static float s_fFlatnessEpsilon;
 	static int s_iSegCount;
 };

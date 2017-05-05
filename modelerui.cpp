@@ -385,6 +385,38 @@ void ModelerUI::cb_wrap(Fl_Light_Button* o, void* v)
 
 
 ////added
+inline void ModelerUI::cb_freeze_i(Fl_Light_Button*, void*)
+{
+	if (m_pbtFreeze->value() == 1) {
+		m_pwndGraphWidget->currCurveFreeze(true);
+	}
+	else if (m_pbtFreeze->value() == 0) {
+		m_pwndGraphWidget->currCurveFreeze(false);
+	}
+	m_pwndGraphWidget->redraw();
+}
+
+void ModelerUI::cb_freeze(Fl_Light_Button* o, void* v)
+{
+	((ModelerUI*)(o->user_data()))->cb_freeze_i(o, v);
+}
+
+inline void ModelerUI::cb_inner_i(Fl_Light_Button*, void*)
+{
+	if (m_pbtInnerPts->value() == 1) {
+		m_pwndGraphWidget->curveInnerPts(true);
+	}
+	else if (m_pbtInnerPts->value() == 0) {
+		m_pwndGraphWidget->curveInnerPts(false);
+	}
+	m_pwndGraphWidget->redraw();
+}
+
+void ModelerUI::cb_inner(Fl_Light_Button* o, void* v)
+{
+	((ModelerUI*)(o->user_data()))->cb_inner_i(o, v);
+}
+
 inline void ModelerUI::cb_tensionSlider_i(Fl_Value_Slider* o, void* v)
 {
 	float tension = m_fTension->value();
@@ -909,6 +941,8 @@ m_bSaveMovie(false)
 	m_pbtZoomAll->callback((Fl_Callback*)cb_zoomAll);
 	m_pchoCurveType->callback((Fl_Callback*)cb_curveType);
 	m_pbtWrap->callback((Fl_Callback*)cb_wrap);
+	m_pbtFreeze->callback((Fl_Callback*)cb_freeze);
+	m_pbtInnerPts->callback((Fl_Callback*)cb_inner);
 	m_pbtSetCamKeyFrame->callback((Fl_Callback*)cb_setCamKeyFrame);
 	m_pbtRemoveCamKeyFrame->callback((Fl_Callback*)cb_removeCamKeyFrame);
 	m_pbtRemoveAllCamKeyFrames->callback((Fl_Callback*)cb_removeAllCamKeyFrames);
