@@ -116,6 +116,8 @@
     </ClCompile>
     <ClCompile Include="glew.c">
       <Filter>Source Files</Filter>
+    <ClCompile Include="C2curveevaluator.cpp">
+      <Filter>Source Files\Curves</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -189,6 +191,9 @@
       <Filter>Source Files\Curves</Filter>
     </ClInclude>
     <ClInclude Include="subdivisioncurveevaluator.h">
+      <Filter>Source Files\Curves</Filter>
+    </ClInclude>
+    <ClInclude Include="C2curveevaluator.h">
       <Filter>Source Files\Curves</Filter>
     </ClInclude>
   </ItemGroup>
