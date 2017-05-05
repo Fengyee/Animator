@@ -39,15 +39,16 @@ Point C2CurveEvaluator::calculateHermite(double t, const Point& p1, const Point&
 {
 	Point result;
 	Vec4f T(t*t*t, t*t, t, 1);
-	Mat4f M(2, -2, 1, 1,
-		-3, 3, -2, -1,
-		0, 0, 1, 0,
-		1, 0, 0, 0);
+	Vec4f M[4] = { Vec4f(2, -2, 1, 1),
+		Vec4f(-3, 3, -2, -1),
+		Vec4f(0, 0, 1, 0),
+		Vec4f(1, 0, 0, 0) };
 	Vec4f Gx(p1.x, p2.x, p3.x, p4.x);
 	Vec4f Gy(p1.y, p2.y, p3.y, p4.y);
 
-	result.x = (T*M)*Gx;
-	result.y = (T*M)*Gy;
+	result.x = T * Vec4f(M[0] * Gx, M[1] * Gx, M[2] * Gx, M[3] * Gx);
+	result.y = T * Vec4f(M[0] * Gy, M[1] * Gy, M[2] * Gy, M[3] * Gy);
+
 	return result;
 }
 void C2CurveEvaluator::evaluateCurve(const std::vector<Point>& ptvCtrlPts,

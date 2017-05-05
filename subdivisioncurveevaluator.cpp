@@ -22,57 +22,57 @@ void SubdivisionCurveEvaluator::evaluateCurve(const std::vector<Point>& ptvCtrlP
 		}
 		catch (exception& e)
 		{
-
+			// pass
 		}
 	}
 
 	int depth = ModelerApplication::getPUI()->m_pDepthSlider->value();
 
-	vector<Point> ctrlpts = ptvCtrlPts;
-	vector<Point> PtsAfterSplitting;
+	vector<Point> control_points = ptvCtrlPts;
+	vector<Point> points_splitted;
 	for (int n = 0; n < depth; ++n)
 	{
-		PtsAfterSplitting.clear();
+		points_splitted.clear();
 		// splitting part
-		for (int i = ctrlpts.size() - averageMask.size(); i < ctrlpts.size(); ++i)
+		for (int i = control_points.size() - averageMask.size(); i < control_points.size(); ++i)
 		{
-			PtsAfterSplitting.push_back(Point(ctrlpts[i].x - fAniLength, ctrlpts[i].y));
+			points_splitted.push_back(Point(control_points[i].x - fAniLength, control_points[i].y));
 			// Add midpoint
-			if (i == ctrlpts.size() - 1)PtsAfterSplitting.push_back(Point((ctrlpts[i].x - fAniLength + ctrlpts[0].x) / 2, (ctrlpts[i].y + ctrlpts[0].y) / 2));
-			else PtsAfterSplitting.push_back(Point((ctrlpts[i].x - fAniLength + ctrlpts[i + 1].x - fAniLength) / 2, (ctrlpts[i].y + ctrlpts[i + 1].y) / 2));
+			if (i == control_points.size() - 1)points_splitted.push_back(Point((control_points[i].x - fAniLength + control_points[0].x) / 2, (control_points[i].y + control_points[0].y) / 2));
+			else points_splitted.push_back(Point((control_points[i].x - fAniLength + control_points[i + 1].x - fAniLength) / 2, (control_points[i].y + control_points[i + 1].y) / 2));
 		}
 
-		for (int i = 0; i < ctrlpts.size() - 1; ++i)
+		for (int i = 0; i < control_points.size() - 1; ++i)
 		{
-			PtsAfterSplitting.push_back(ctrlpts[i]);
-			PtsAfterSplitting.push_back(Point((ctrlpts[i].x + ctrlpts[i + 1].x) / 2, (ctrlpts[i].y + ctrlpts[i + 1].y) / 2));
+			points_splitted.push_back(control_points[i]);
+			points_splitted.push_back(Point((control_points[i].x + control_points[i + 1].x) / 2, (control_points[i].y + control_points[i + 1].y) / 2));
 		}
-		PtsAfterSplitting.push_back(ctrlpts[ctrlpts.size() - 1]);
+		points_splitted.push_back(control_points[control_points.size() - 1]);
 
 		for (int i = 0; i < averageMask.size(); ++i)
 		{
 			//Add midpoint
-			if (i == 0)PtsAfterSplitting.push_back(Point((ctrlpts[i].x + fAniLength + ctrlpts[ctrlpts.size() - 1].x) / 2, (ctrlpts[i].y + ctrlpts[ctrlpts.size() - 1].y) / 2));
-			else PtsAfterSplitting.push_back(Point((ctrlpts[i].x + fAniLength + ctrlpts[i - 1].x + fAniLength) / 2, (ctrlpts[i].y + ctrlpts[i - 1].y) / 2));
-			PtsAfterSplitting.push_back(Point(ctrlpts[i].x + fAniLength, ctrlpts[i].y));
+			if (i == 0)points_splitted.push_back(Point((control_points[i].x + fAniLength + control_points[control_points.size() - 1].x) / 2, (control_points[i].y + control_points[control_points.size() - 1].y) / 2));
+			else points_splitted.push_back(Point((control_points[i].x + fAniLength + control_points[i - 1].x + fAniLength) / 2, (control_points[i].y + control_points[i - 1].y) / 2));
+			points_splitted.push_back(Point(control_points[i].x + fAniLength, control_points[i].y));
 		}
 
 		//average part
-		ctrlpts.clear();
-		for (int i = 0; i < PtsAfterSplitting.size() - averageMask.size() + 1; ++i)
+		control_points.clear();
+		for (int i = 0; i < points_splitted.size() - averageMask.size() + 1; ++i)
 		{
 			Point tmp;
 			for (int j = 0; j < averageMask.size(); ++j)
 			{
-				tmp.x += PtsAfterSplitting[i + j].x*averageMask[j];
-				tmp.y += PtsAfterSplitting[i + j].y*averageMask[j];
+				tmp.x += points_splitted[i + j].x*averageMask[j];
+				tmp.y += points_splitted[i + j].y*averageMask[j];
 			}
-			if (tmp.x >= 0 && tmp.x <= fAniLength)ctrlpts.push_back(tmp);
+			if (tmp.x >= 0 && tmp.x <= fAniLength)control_points.push_back(tmp);
 		}
 	}
-	ptvEvaluatedCurvePts = ctrlpts;
-	ptvEvaluatedCurvePts.push_back(Point(0, ctrlpts[0].y));
-	ptvEvaluatedCurvePts.push_back(Point(fAniLength, ctrlpts[ctrlpts.size() - 1].y));
+	ptvEvaluatedCurvePts = control_points;
+	ptvEvaluatedCurvePts.push_back(Point(0, control_points[0].y));
+	ptvEvaluatedCurvePts.push_back(Point(fAniLength, control_points[control_points.size() - 1].y));
 }
 
 vector<string> split(const string& input, char splitter, bool handle_double_quote)
@@ -108,17 +108,11 @@ vector<string> split(const string& input, char splitter, bool handle_double_quot
 		{
 			if (handle_double_quote && c == '"')
 			{
-				// WARNING: Short-cut evaluation used
-				// DO NOT change the operant sequence of ||'s
 
-				// if we are in quote, the way out is
-				// either the quote is the last character,
-				// or it is followed by a splitter
 				if (in_quote && (current == length - 1 || input[current + 1] == splitter))
 				{
 					in_quote = false;
 
-					// when we are getting out of a quote, we should also end the string
 					if (curr->length() > 0)
 					{
 						result.push_back(*curr);
@@ -127,9 +121,7 @@ vector<string> split(const string& input, char splitter, bool handle_double_quot
 					}
 					continue;
 				}
-				// a start of the quote shall be
-				// either at the beginning of the string,
-				// or right after a splitter
+
 				else if (!in_quote && (current == 0 || input[current - 1] == splitter))
 				{
 					in_quote = true;
