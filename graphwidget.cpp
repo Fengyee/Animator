@@ -331,6 +331,7 @@ void GraphWidget::draw()
 
 		do_callback();
 	}
+
 	drawTimeBar();
 	drawActiveCurves();
 	drawZoomSelectionMap();
@@ -847,6 +848,13 @@ void GraphWidget::currCurveWrap(bool bWrap)
 {
 	if (m_iCurrCurve >= 0) {
 		m_pcrvvCurves[m_iCurrCurve]->wrap(bWrap);
+	}
+}
+
+void GraphWidget::currCurveTension(float tension)
+{
+	if (m_iCurrCurve >= 0) {
+		m_pcrvvCurves[m_iCurrCurve]->tension(tension);
 	}
 }
 

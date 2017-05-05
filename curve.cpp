@@ -20,6 +20,7 @@ float Curve::s_fCtrlPtXEpsilon = 0.0001f;
 Curve::Curve() :
 	m_pceEvaluator(NULL),
 	m_bWrap(false),
+	m_fTension(0.5),
 	m_bDirty(true),
 	m_fMaxX(1.0f)
 {
@@ -29,6 +30,7 @@ Curve::Curve() :
 Curve::Curve(const float fMaxX, const Point& point) :
 	m_pceEvaluator(NULL),
 	m_bWrap(false),
+	m_fTension(0.5),
 	m_bDirty(true),
 	m_fMaxX(fMaxX)
 {
@@ -38,6 +40,7 @@ Curve::Curve(const float fMaxX, const Point& point) :
 Curve::Curve(const float fMaxX, const float fStartYValue) :
 	m_pceEvaluator(NULL),
 	m_bWrap(false),
+	m_fTension(0.5),
 	m_bDirty(true),
 	m_fMaxX(fMaxX)
 {
@@ -106,10 +109,17 @@ void Curve::wrap(bool bWrap)
 	m_bDirty = true;
 }
 
+void Curve::tension(float mfTension)
+{
+	m_fTension = mfTension;
+	m_bDirty = true;
+}
+
 bool Curve::wrap() const
 {
 	return m_bWrap;
 }
+
 
 float Curve::evaluateCurveAt(const float x) const
 {
@@ -417,8 +427,7 @@ void Curve::reevaluate() const
 			m_pceEvaluator->evaluateCurve(m_ptvCtrlPts, 
 				m_ptvEvaluatedCurvePts, 
 				m_fMaxX, 
-				m_bWrap);
-
+				m_bWrap, m_fTension);
 			std::sort(m_ptvEvaluatedCurvePts.begin(),
 				m_ptvEvaluatedCurvePts.end(),
 				PointSmallerXCompare());
